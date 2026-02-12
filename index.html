@@ -1,0 +1,1264 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akang Cosplay - Online Manager (Pro Data)</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* --- LOAD CUSTOM FONT --- */
+        @font-face {
+            font-family: 'HardRace';
+            src: url('Hard Race.otf') format('opentype');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* --- CSS VARIABLES & RESET --- */
+        :root {
+            --primary: #ff4757;
+            --secondary: #2f3542;
+            --dark: #1e272e;
+            --light: #f1f2f6;
+            --gold: #ffa502;
+            --card-bg: #353b48;
+            --accent-blue: #3498db;
+            --danger: #ff6b6b;
+            --purple: #9b59b6;
+            --green: #2ecc71;
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            margin: 0;
+            padding-bottom: 80px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: linear-gradient(135deg, #192a56, #273c75);
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 4px solid var(--primary);
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            display: flex; flex-direction: column; align-items: center;
+            transition: all 0.5s ease;
+        }
+        
+        header.gamers-mode {
+            background: linear-gradient(135deg, #000000, #1e272e);
+            border-bottom-color: var(--gold);
+        }
+
+        .team-logo {
+            width: 80px; height: 80px; object-fit: contain;
+            background: rgba(255,255,255,0.1); border-radius: 50%;
+            margin-bottom: 10px; border: 2px solid var(--light);
+            display: none; 
+            transition: transform 0.3s;
+        }
+
+        header h1 { 
+            margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; 
+            transition: all 0.3s ease;
+        }
+
+        /* Style Khusus Font Hard Race (GAMERS) */
+        .title-gamers {
+            font-family: 'HardRace', sans-serif !important;
+            font-size: 2rem !important; 
+            color: var(--gold) !important; 
+            text-shadow: 0 0 10px rgba(255, 165, 2, 0.8), 2px 2px 0px #000;
+            letter-spacing: 3px;
+        }
+
+        header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.8rem; transition: all 0.3s; }
+
+        .admin-toggle {
+            position: absolute; top: 15px; right: 15px;
+            background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem;
+        }
+        .admin-active { color: var(--gold); }
+        .admin-badge {
+            display: none; background: var(--danger); color: white; 
+            padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; 
+            margin-top: 5px; font-weight: bold; text-transform: uppercase;
+        }
+
+        .container { max-width: 800px; margin: 0 auto; padding: 20px; }
+
+        /* --- NAVIGATION --- */
+        .nav-tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 50px; padding: 5px;
+        }
+        .nav-btn {
+            flex: 1; border: none; background: none; color: #aaa;
+            padding: 12px 5px; cursor: pointer; font-weight: bold;
+            border-radius: 50px; transition: 0.3s; font-size: 0.9rem;
+        }
+        .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .nav-btn-gamers.active { background: var(--accent-blue); }
+
+        /* --- VIEWS --- */
+        .view-section { display: none; animation: fadeIn 0.4s; }
+        .view-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- CARDS --- */
+        .leaderboard-card, .feed-card {
+            background: var(--card-bg); border-radius: 12px; position: relative;
+            margin-bottom: 15px; padding: 15px; border: 1px solid #485460;
+            contain: layout; 
+        }
+        .leaderboard-card { display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
+        .leaderboard-card:active { transform: scale(0.98); }
+        
+        .rank-badge { font-size: 1.5rem; font-weight: bold; width: 40px; text-align: center; margin-right: 15px; color: var(--gold); }
+        .avatar-small { width: 50px; height: 50px; border-radius: 50%; object-fit: cover; margin-right: 15px; border: 2px solid var(--primary); background: #aaa; }
+        .lb-info { flex: 1; }
+        .lb-info h3 { margin: 0; font-size: 1.1rem; }
+        .lb-stats div { font-weight: bold; color: var(--primary); font-size: 1.2rem; text-align: right; }
+
+        .feed-card { border-left: 5px solid var(--accent-blue); min-height: 150px; }
+        .feed-card.feed-comp { border-left-color: var(--gold); }
+        .feed-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .feed-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+        .feed-rank { 
+            position: absolute; top: 15px; right: 15px; 
+            background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 5px;
+            color: var(--gold); font-weight: bold; font-size: 0.9rem;
+        }
+        .feed-img-proof { 
+            width: 100%; aspect-ratio: 1 / 1; object-fit: cover; 
+            border-radius: 5px; margin-top: 10px; border: 1px solid #555; display: block; cursor: zoom-in; 
+        }
+
+        /* --- FILTER TABS --- */
+        .filter-tabs {
+            display: flex; gap: 10px; margin-bottom: 20px;
+            background: var(--card-bg); border-radius: 50px; padding: 5px;
+            border: 1px solid #485460; position: sticky; top: 0; z-index: 50;
+        }
+        .filter-btn {
+            flex: 1; border: none; background: none; color: #aaa; padding: 10px;
+            cursor: pointer; font-weight: bold; border-radius: 50px; transition: 0.3s;
+            font-size: 0.85rem; text-transform: uppercase;
+        }
+        .filter-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
+        /* Admin Buttons */
+        .admin-controls { display: none; position: absolute; bottom: 10px; right: 10px; z-index: 10; }
+        .show-admin { display: block !important; }
+        .btn-mini-action { width: 30px; height: 30px; border-radius: 5px; border:none; color:white; cursor: pointer; margin-left: 5px; }
+        .btn-delete-profile { display: none; background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; position: absolute; top: 15px; left: 15px; }
+
+        /* --- PROFILE --- */
+        .profile-header { text-align: center; background: var(--card-bg); padding: 30px; border-radius: 15px; margin-bottom: 20px; position: relative; }
+        .btn-edit-profile { position: absolute; top: 15px; right: 15px; background: transparent; border: 1px solid #777; color: #ddd; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .profile-pic { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); margin-bottom: 15px; background: #555; }
+        .tag { background: #485460; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; color: white; display: inline-block; margin: 3px; }
+        .social-badge { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; padding: 6px 15px; border-radius: 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; transition: transform 0.2s; }
+        .social-badge:hover { transform: scale(1.05); color: white; }
+
+        /* --- GALLERY --- */
+        .gallery-section { margin-bottom: 25px; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 15px; }
+        .gallery-item { position: relative; aspect-ratio: 1 / 1; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #485460; }
+        .gallery-img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s; }
+        .gallery-img:hover { transform: scale(1.1); }
+        .btn-del-photo { position: absolute; top: 0; right: 0; background: rgba(255,0,0,0.8); color: white; border: none; width: 25px; height: 25px; cursor: pointer; z-index: 10; display: none; }
+        .btn-add-photo { width: 100%; background: #3d4655; color: #aaa; border: 2px dashed #57606f; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        .btn-add-photo:hover { background: #485460; color: white; border-color: var(--accent-blue); }
+
+        /* --- SEARCH BAR --- */
+        .search-container { position: relative; margin-bottom: 15px; }
+        .search-icon { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 1.1rem; }
+        .search-bar { width: 100%; padding: 12px 12px 12px 42px; background: var(--card-bg); border: 1px solid #555; color: white; border-radius: 25px; font-size: 0.95rem; outline: none; transition: 0.3s; margin: 0; }
+        .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 8px rgba(255, 71, 87, 0.4); }
+
+        /* --- MODAL --- */
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; justify-content: center; align-items: center; }
+        .modal-content { background: var(--secondary); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
+        
+        /* --- CHAT BOT UI --- */
+        #modalBot .modal-content { max-width: 800px; }
+        .bot-layout { display: flex; gap: 15px; height: 60vh; min-height: 400px; max-height: 600px; margin-top: 10px; }
+        .bot-chat-section { flex: 2; display: flex; flex-direction: column; min-width: 0; border: 1px solid #485460; border-radius: 10px; background: var(--dark); overflow: hidden;}
+        .bot-menu-section { flex: 1; display: flex; flex-direction: column; overflow-y: auto; gap: 8px; padding-right: 5px;}
+        .bot-menu-title { font-size: 0.9rem; color: var(--gold); margin: 0 0 10px 0; font-weight: bold; border-bottom: 1px solid #555; padding-bottom: 5px;}
+        .chat-box { flex-grow: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .chat-msg { display: flex; flex-direction: column; width: 100%; }
+        .chat-msg.bot { align-items: flex-start; }
+        .chat-msg.user { align-items: flex-end; }
+        .bubble { max-width: 85%; padding: 10px 15px; border-radius: 15px; font-size: 0.9rem; line-height: 1.5; word-wrap: break-word; }
+        .bubble.bot { background: var(--card-bg); color: white; border-bottom-left-radius: 2px; border: 1px solid #555; }
+        .bubble.user { background: var(--accent-blue); color: white; border-bottom-right-radius: 2px; }
+        .bot-opt-btn { background: var(--dark); border: 1px solid var(--accent-blue); color: #ddd; padding: 10px; border-radius: 10px; cursor: pointer; text-align: left; transition: 0.2s; font-size: 0.85rem; line-height: 1.3; }
+        .bot-opt-btn:hover { background: var(--accent-blue); color: white; }
+        .chat-input-area { display: flex; gap: 8px; padding: 10px; background: var(--card-bg); border-top: 1px solid #485460; }
+        .chat-input-area input { flex-grow: 1; background: var(--dark); border: 1px solid #555; border-radius: 20px; color: white; outline: none; padding: 10px 15px; margin: 0; }
+        .chat-input-area button { background: var(--accent-blue); border: none; color: white; width: 42px; height: 42px; border-radius: 50%; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: 0.2s; }
+        .chat-input-area button:hover { background: var(--primary); }
+
+        /* FAB MENU */
+        .fab-container { position: fixed; bottom: 25px; right: 25px; z-index: 200; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .fab-menu { display: none; flex-direction: column; gap: 10px; margin-bottom: 5px; }
+        .fab-menu.show { display: flex; animation: slideUp 0.3s; }
+        .fab-menu button { background: var(--card-bg); color: white; border: 1px solid var(--primary); padding: 10px 15px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-weight: bold; text-align: right; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .btn-fab { background: var(--primary); color: white; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 28px; box-shadow: 0 5px 15px rgba(255, 71, 87, 0.6); cursor: pointer; display: flex; justify-content: center; align-items: center; }
+        
+        input:not(.search-bar):not(#chatInput), select, textarea { width: 100%; padding: 12px; background: var(--dark); border: 1px solid #57606f; color: white; border-radius: 5px; margin-top: 5px; margin-bottom: 10px; }
+        label { color: #ccc; font-weight: bold; }
+        .btn-submit { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .hidden { display: none; }
+
+        /* Settings */
+        .btn-settings { display: none; width: 100%; margin-top: 20px; background: #333; color: #ddd; padding: 10px; border: 1px dashed #777; cursor: pointer; }
+        .btn-restore { background: #e67e22; color: white; border:none; padding: 12px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 10px;}
+        .btn-backup { background: #3498db; color: white; border:none; padding: 12px; width: 100%; cursor: pointer; border-radius: 5px; font-weight: bold; margin-bottom: 20px; }
+        .btn-inject { background: #2ecc71; color: white; border:none; padding: 15px; width: 100%; cursor: pointer; border-radius: 8px; font-weight: bold; margin-top: 10px; font-size: 1rem; }
+
+        .bot-link { color: var(--gold); text-decoration: underline; font-weight: bold; }
+        .bot-link:hover { color: var(--primary); }
+
+        /* --- GAME CATALOG --- */
+        .game-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 15px; margin-top: 15px; }
+        .game-card { position: relative; border-radius: 10px; overflow: hidden; border: 2px solid #485460; box-shadow: 0 4px 8px rgba(0,0,0,0.3); background: var(--dark); transition: transform 0.2s;}
+        .game-card:hover { transform: scale(1.05); border-color: var(--accent-blue); }
+        .game-img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; display: block; }
+        .game-title { position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.95)); padding: 25px 8px 10px; text-align: center; font-size: 0.85rem; font-weight: bold; color: var(--gold); line-height: 1.2; word-wrap: break-word;}
+        .btn-delete-game { position: absolute; top: 5px; right: 5px; background: rgba(255, 71, 87, 0.9); color: white; border: none; width: 25px; height: 25px; border-radius: 5px; cursor: pointer; display: none; z-index: 10; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+    <header id="mainHeader">
+        <button class="admin-toggle" onclick="toggleAdminMode()">
+            <i class="fas fa-lock" id="iconLock"></i>
+        </button>
+        
+        <img src="" id="teamLogo" class="team-logo">
+        
+        <h1 id="headerTitle">Akang Cosplay</h1>
+        <p id="headerEst">EST. 2024</p>
+        <div id="adminBadge" class="admin-badge">Admin Mode Active</div>
+        
+        <button id="btnGlobalSettings" class="btn-settings" onclick="openModal('modalSettings')">
+            <i class="fas fa-cog"></i> Pengaturan Admin
+        </button>
+    </header>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchView('leaderboard')"><i class="fas fa-trophy"></i> Klasemen</button>
+            <button class="nav-btn" onclick="switchView('history')"><i class="fas fa-history"></i> Riwayat</button>
+            <button class="nav-btn nav-btn-gamers" onclick="switchView('gamers')"><i class="fas fa-gamepad"></i> Gamers</button>
+        </div>
+
+        <div id="view-leaderboard" class="view-section active">
+            <div id="leaderboard-list"></div>
+            <div id="empty-lb" style="text-align: center; color: #777; margin-top: 50px; display: none;">Belum ada data member.</div>
+        </div>
+
+        <div id="view-history" class="view-section">
+            <h3 style="border-left: 4px solid var(--accent-blue); padding-left: 10px;">Riwayat Kemenangan</h3>
+            
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchHistory" class="search-bar" placeholder="Cari nama, event, atau karakter..." onkeyup="resetHistoryAndRender()">
+            </div>
+
+            <div class="filter-tabs">
+                <button class="filter-btn active" onclick="filterHistory('all', this)">Overall</button>
+                <button class="filter-btn" onclick="filterHistory('Coswalk', this)">Coswalk</button>
+                <button class="filter-btn" onclick="filterHistory('Coscom', this)">Coscom</button>
+            </div>
+
+            <div id="global-history-list"></div>
+            <div id="scroll-trigger" style="height: 20px;"></div>
+        </div>
+
+        <div id="view-gamers" class="view-section">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: var(--accent-blue); margin-bottom: 5px;"><i class="fas fa-gamepad"></i> AKANG GAMERS</h2>
+                <p style="color: #ccc; font-size: 0.9rem; margin-top: 0;">Divisi Livestream & Mabar Santai bareng Rein dan Nabilla! 🎮✨</p>
+            </div>
+            
+            <div class="feed-card" style="border-left-color: var(--accent-blue);">
+                <h3 style="margin-top:0;">Apa itu Akang Gamers?</h3>
+                <p style="font-size: 0.9rem; line-height: 1.5; color: #ddd; margin-bottom: 0;">Akang Gamers adalah wadah seru-seruan dimana <b>Rein</b> dan <b>Nabilla</b> melakukan live streaming sambil main game dan ngobrol santai bareng para viewers. Walaupun kami cosplayer, kami juga suka mabar! Yuk gabung ke stream kami, jangan lupa bawa cemilan ya!</p>
+            </div>
+
+            <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
+                <div class="leaderboard-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-rein" class="profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px; border-color: var(--accent-blue);">
+                    <h3 style="margin: 0; color: var(--gold);">Rein</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0 0 0;"><i class="fas fa-headset"></i> Streamer / Player</p>
+                </div>
+
+                <div class="leaderboard-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-nabilla" class="profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px; border-color: var(--purple);">
+                    <h3 style="margin: 0; color: var(--gold);">Nabilla</h3>
+                    <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0 0 0;"><i class="fas fa-headset"></i> Streamer / Player</p>
+                </div>
+            </div>
+
+            <div style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
+                <h3 style="color: var(--accent-blue); text-align: center; margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; justify-content: center; gap: 10px;">
+                    <i class="fas fa-layer-group"></i> List Game Mabar
+                </h3>
+                <button id="btnAddGameBtn" class="admin-only" style="display: none; background: var(--green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; width: 100%; font-weight: bold;" onclick="openModal('modalAddGame')"><i class="fas fa-plus"></i> Tambah Katalog Game</button>
+                
+                <div id="game-catalog-list" class="game-catalog-grid"></div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px;">
+                <p style="color: var(--gold); font-weight: bold; margin-top: 0; margin-bottom: 15px;">Follow Sosmed Akang Gamers:</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+                    <button onclick="window.open('https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq', '_blank')" style="background: #c4302b; color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
+                        <i class="fab fa-youtube"></i> YouTube
+                    </button>
+                    <button onclick="window.open('https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y', '_blank')" style="background: #000000; color:white; border: 1px solid #444; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
+                        <i class="fab fa-tiktok"></i> TikTok
+                    </button>
+                    <button onclick="window.open('https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z', '_blank')" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
+                        <i class="fab fa-instagram"></i> Instagram
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-profile" class="view-section">
+            <button style="background:none; border:none; color:#aaa; cursor:pointer; margin-bottom:10px;" onclick="switchView('leaderboard')">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+            
+            <div class="profile-header">
+                <button class="btn-delete-profile" onclick="deleteCurrentMember()"><i class="fas fa-trash"></i> Hapus Member</button>
+                <button class="btn-edit-profile" onclick="openEditModal()"><i class="fas fa-pen"></i></button>
+                
+                <img src="" id="p-photo" class="profile-pic">
+                <h2 id="p-name" style="color:var(--primary); margin: 10px 0 5px 0;">Nama</h2>
+                
+                <a id="p-ig" href="#" target="_blank" class="social-badge" style="display:none;"><i class="fab fa-instagram"></i> Instagram</a>
+                
+                <p id="p-bio" style="font-style:italic; color:#ccc; margin-top: 5px;">Bio...</p>
+                <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
+                    <div><span id="p-stat-coswalk" style="font-size: 1.5rem; font-weight:bold; color:var(--accent-blue);">0</span><br><small>Coswalk</small></div>
+                    <div><span id="p-stat-comp" style="font-size: 1.5rem; font-weight:bold; color:var(--gold);">0</span><br><small>Comp</small></div>
+                </div>
+            </div>
+
+            <div class="gallery-section">
+                <h3 style="display:flex; justify-content:space-between; align-items:center;">
+                    <span>📸 Galeri Kostum</span>
+                    <small style="font-size:0.7em; font-weight:normal; color:#777;">(Grid 1:1)</small>
+                </h3>
+                
+                <button class="btn-add-photo" onclick="document.getElementById('galleryInput').click()">
+                    <i class="fas fa-camera"></i> Tambah Foto ke Galeri
+                </button>
+                <input type="file" id="galleryInput" hidden accept="image/*" onchange="uploadGalleryPhoto(this)">
+
+                <div id="p-gallery-grid" class="gallery-grid"></div>
+            </div>
+
+            <h3>🎭 Repertoire</h3>
+            <div id="p-repertoire" style="margin-bottom: 20px;"></div>
+
+            <h3>📜 Riwayat Juara</h3>
+            <div id="p-history-list"></div>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <div id="fabMenu" class="fab-menu">
+            <button onclick="toggleFabMenu(); openBotModal()" style="border-color: var(--accent-blue);">💬 Tanya Akang</button>
+            <button id="fabBtnMember" class="admin-only" style="display: none;" onclick="toggleFabMenu(); openModal('modalMember')">👤 Member Baru</button>
+            <button id="fabBtnWin" class="admin-only" style="display: none;" onclick="toggleFabMenu(); openModalWin()">🏆 Input Menang</button>
+        </div>
+        <button class="btn-fab" onclick="toggleFabMenu()" title="Menu"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <div id="modalAddGame" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--accent-blue);"><i class="fas fa-gamepad"></i> Tambah Katalog Game</h3>
+            <label>Nama Game</label><input type="text" id="addGameName" placeholder="Contoh: Valorant">
+            <label>Gambar Cover Game (Pilih File)</label>
+            <small style="color: #aaa; display:block; margin-bottom: 5px;">*Akan otomatis dipotong menjadi vertikal (Rasio 9:16)</small>
+            <input type="file" id="addGameImage" accept="image/*">
+            <button class="btn-submit" onclick="submitAddGame()">Simpan Game</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddGame')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalBot" class="modal">
+        <div class="modal-content" style="padding: 15px; display: flex; flex-direction: column;">
+            <h3 style="margin-top:0; margin-bottom: 5px; color:var(--accent-blue); display:flex; justify-content:space-between; flex-shrink: 0;">
+                <span>🤖 Akang Bot</span>
+                <i class="fas fa-times" style="cursor:pointer; color:#777;" onclick="closeModal('modalBot')"></i>
+            </h3>
+            <div class="bot-layout">
+                <div class="bot-menu-section" id="chatOptions">
+                    <div class="bot-menu-title">Daftar Topik:</div>
+                </div>
+                <div class="bot-chat-section">
+                    <div id="chatArea" class="chat-box"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan..." onkeypress="handleChatEnter(event)">
+                        <button onclick="sendCustomMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modalMember" class="modal">
+        <div class="modal-content">
+            <h3>👤 Member Baru</h3>
+            <label>Nama Panggung</label><input type="text" id="regName">
+            <label>Bio</label><textarea id="regBio" rows="2"></textarea>
+            <label>Link / Username Instagram</label><input type="text" id="regIg" placeholder="Cth: https://instagram.com/... atau @nama">
+            <label>Foto Profil</label><input type="file" id="regPhoto" accept="image/*">
+            <button class="btn-submit" onclick="submitMember()">Simpan</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalMember')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalWin" class="modal">
+        <div class="modal-content">
+            <h3>🏆 Input Kemenangan</h3>
+            <label>Siapa yang menang?</label><select id="winMember"></select>
+            <label>Nama Event</label><input type="text" id="winEvent">
+            <label>Kategori</label>
+            <select id="winCat">
+                <option value="Coswalk">Coswalk</option>
+                <option value="Cosplay Competition">Cosplay Competition</option>
+            </select>
+            <label>Karakter</label><input type="text" id="winChar">
+            <label>Tanggal Event</label>
+            <input type="date" id="winDate">
+            <label>Juara Ke-</label>
+            <select id="winRank" onchange="toggleBestInput()">
+                <option value="1">Juara 1</option>
+                <option value="2">Juara 2</option>
+                <option value="3">Juara 3</option>
+                <option value="Best">Best / Fav</option>
+            </select>
+            <div id="divBestTitle" class="hidden">
+                <label style="color:var(--gold);">Nama Kategori Best/Fav</label><input type="text" id="winBestTitle">
+            </div>
+            <label>Nama Juri</label><input type="text" id="winJudges">
+            <label>Bukti Foto</label><input type="file" id="winProof" accept="image/*">
+            <button class="btn-submit" onclick="submitWin()">Simpan Data</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalWin')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalEditHistory" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Data Kemenangan</h3>
+            <input type="hidden" id="editHistMemberId">
+            <input type="hidden" id="editHistId">
+            <label>Nama Event</label><input type="text" id="editHistEvent">
+            <label>Kategori</label>
+            <select id="editHistCat">
+                <option value="Coswalk">Coswalk</option>
+                <option value="Cosplay Competition">Cosplay Competition</option>
+            </select>
+            <label>Karakter</label><input type="text" id="editHistChar">
+            <label>Tanggal</label><input type="date" id="editHistDate">
+            <label>Juara Ke-</label>
+            <select id="editHistRank" onchange="toggleEditBestInput()">
+                <option value="1">Juara 1</option>
+                <option value="2">Juara 2</option>
+                <option value="3">Juara 3</option>
+                <option value="Best">Best / Fav</option>
+            </select>
+            <div id="divEditBestTitle" class="hidden">
+                <label style="color:var(--gold);">Detail Best</label><input type="text" id="editHistBestTitle">
+            </div>
+            <label>Nama Juri</label><input type="text" id="editHistJudges">
+            <button class="btn-submit" onclick="saveEditHistory()">Simpan Perubahan</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEditHistory')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalEdit" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Profil</h3>
+            <input type="hidden" id="editId">
+            <label>Nama</label><input type="text" id="editName">
+            <label>Bio</label><textarea id="editBio" rows="2"></textarea>
+            <label>Link / Username Instagram</label><input type="text" id="editIg">
+            <label>Foto Baru</label><input type="file" id="editPhoto" accept="image/*">
+            <label>Tambah Kostum (Repertoire)</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="repInput" placeholder="Nama Karakter...">
+                <button onclick="addRepertoireTag()" style="width:50px; background:var(--accent-blue); border:none; color:white; border-radius:5px;">+</button>
+            </div>
+            <div id="editRepList" style="margin-top:10px;"></div>
+            <button class="btn-submit" onclick="saveEditProfile()">Update</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEdit')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalSettings" class="modal">
+        <div class="modal-content">
+            <h3>⚙️ Admin Settings</h3>
+            
+            <div style="margin-bottom:20px; border-bottom:1px solid #555; padding-bottom:15px;">
+                 <label style="color:var(--accent-blue); font-size:1.1rem;"><i class="fas fa-download"></i> Backup Data (Anti-Hack)</label>
+                 <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px;">Download semua data member & katalog game ke HP/Laptop Anda secara berkala.</p>
+                 <button class="btn-backup" id="btnDownloadBackup" onclick="downloadBackupData()">⬇️ Download Backup Data (JSON)</button>
+            </div>
+
+            <label>Ganti Logo Website (Default Cosplay)</label>
+            <input type="file" id="settingLogo" accept="image/*">
+            <button onclick="saveLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Default</button>
+            
+            <label style="color: var(--accent-blue)">Ganti Logo "Akang Gamers"</label>
+            <input type="file" id="settingGamersLogo" accept="image/*">
+            <button onclick="saveGamersLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Gamers</button>
+
+            <div style="background: rgba(230, 126, 34, 0.1); border: 1px solid #e67e22; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <label style="color:var(--gold); font-weight:bold; margin-top:0; display:block;">🔥 Migrasi / Restore Data</label>
+                <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px; margin-bottom: 10px;">Upload file <b>.json</b> hasil backup untuk mengembalikan data.</p>
+                <input type="file" id="restoreFile" accept=".json" style="margin-bottom: 10px;">
+                <button class="btn-restore" id="btnRestoreAction" onclick="restoreToFirebase()">⬆️ Upload JSON ke Database</button>
+            </div>
+            
+            <button id="btnInjectIan" class="btn-inject" onclick="injectIanData()">⚡ Inject Data Kemenangan Ian (Auto)</button>
+
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalSettings')">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 0. KONFIGURASI GAMBAR & LOGO ---
+        let defaultLogoUrl = ""; 
+        let gamersLogoUrl = "";
+
+        // --- 1. INISIALISASI FIREBASE ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyBeMa1tPgUnooWjGZIe7AA49X1cpSPFWFU",
+            authDomain: "website-akang-cosplay.firebaseapp.com",
+            projectId: "website-akang-cosplay",
+            storageBucket: "website-akang-cosplay.firebasestorage.app",
+            messagingSenderId: "557981115525",
+            appId: "1:557981115525:web:114b2422264d816a71f5ec",
+            measurementId: "G-NFGQPP01VE"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // --- DATA & STATE ---
+        let members = [];
+        let games = []; 
+        let currentTempRepertoire = [];
+        let isAdmin = false; 
+        
+        const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
+        let currentHistoryFilter = 'all'; 
+        let lastTopic = ""; 
+
+        // --- STATE VIRTUAL SCROLL ---
+        let displayedItemsCount = 0;
+        const itemsBatchSize = 10;
+        let filteredGlobalHistoryData = [];
+
+        // --- SECURITY FUNCTION (ANTI-XSS) ---
+        function escapeHtml(text) {
+            if (!text) return "";
+            if (typeof text !== "string") return text;
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
+
+        // --- 2. LISTENER REAL-TIME FIREBASE ---
+        db.collection("members").onSnapshot((snapshot) => {
+            members = [];
+            snapshot.forEach((doc) => { members.push(doc.data()); });
+            renderAll(); 
+        });
+
+        db.collection("games").onSnapshot((snapshot) => {
+            games = [];
+            snapshot.forEach((doc) => { games.push(doc.data()); });
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGames();
+        });
+
+        // Listener Settings
+        db.collection("settings").doc("global").onSnapshot((doc) => {
+            if(doc.exists && doc.data().logo) {
+                defaultLogoUrl = doc.data().logo;
+                if(!document.getElementById('view-gamers').classList.contains('active')) {
+                    document.getElementById('teamLogo').src = defaultLogoUrl;
+                    document.getElementById('teamLogo').style.display = "block";
+                }
+            }
+        });
+        db.collection("settings").doc("gamers").onSnapshot((doc) => {
+            if(doc.exists && doc.data().logo) {
+                gamersLogoUrl = doc.data().logo;
+                if(document.getElementById('view-gamers').classList.contains('active')) {
+                    document.getElementById('teamLogo').src = gamersLogoUrl;
+                    document.getElementById('teamLogo').style.display = "block";
+                }
+            }
+        });
+
+        // --- BOT FAQ DATA ---
+        const botFaqData = [
+            { q: "Apa itu Akang Cosplay?", a: "Akang Cosplay adalah sebuah tim cosplay yang beranggotakan KanekIan/Ian, Nabilla, dan Rein/Azrael. Kami resmi berdiri sejak 14 Juni 2024! ✨" },
+            { q: "Apa itu Akang Gamers? / Live Stream", a: "🎮 <b>Akang Gamers</b> adalah divisi khusus dari Akang Cosplay! Di sini, <b>Rein</b> dan <b>Nabilla</b> rutin melakukan live streaming, main game bareng, dan ngobrol santai dengan para viewers.<br><br>Yuk mampir dan follow kami di:<br>- YT: <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a><br>- IG: <a href='https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z' target='_blank' class='bot-link'>@akanggamersofc</a><br>- TikTok: <a href='https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y' target='_blank' class='bot-link'>@realaffiliate1372</a>" },
+            { q: "Boleh minta Sosmed Akang Cosplay & Membernya?", a: "Tentu saja! Silakan kepoin dan follow media sosial kami ya:<br><br>✨ <b>Akang Cosplay:</b><br>- IG: <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br>- TikTok: <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a><br>- YouTube: <a href='https://youtube.com/@akangcosplay?si=oEZArK_Fnyq5ObUt' target='_blank' class='bot-link'>Akang Cosplay</a><br><br>👥 <b>Instagram Member:</b><br>👉 KanekIan/Ian: <a href='https://www.instagram.com/ian07_/' target='_blank' class='bot-link'>@ian07_</a><br>👉 Rein/Azrael: <a href='https://www.instagram.com/reincoser_/' target='_blank' class='bot-link'>@reincoser_</a><br>👉 Nabilla: <a href='https://www.instagram.com/nabillacoser/' target='_blank' class='bot-link'>@nabillacoser</a>" },
+            { q: "Gimana cara join jadi member?", a: "Buat kamu yang ingin bergabung, kami punya program 'Akang Trainee'! Di sini kita bakal seru-seruan bareng, latihan performa sesuai karakter, dan saling update event terbaru. Kalau tertarik, langsung aja DM IG kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 📩" },
+            { q: "Terima jasa sewa kostum / makeup?", a: "Wah, untuk saat ini kami belum menyediakan jasa rental kostum, pembuat properti (maker), ataupun makeup cosplay. Tapi tenang aja, kami sedang mempertimbangkan untuk membuka jasa tersebut di masa mendatang. Ditunggu terus ya update dari kami! 🧵🎨" },
+            { q: "Bisa kerja sama (Juri/Guest Star)?", a: "Tentu saja! Akang Cosplay sangat terbuka dan antusias dengan berbagai tawaran kerja sama, baik sebagai Juri, Guest Star, maupun Talent. Yuk, diskusikan konsep kerjasamanya melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 🤝🎤" }
+        ];
+
+        // --- AUTO INJECT DATA IAN ---
+        const ianDataRaw = [
+            // 2023
+            { d:"2023-01-29", r:"Best", t:"Top 5", c:"Coswalk", e:"Matana Week Festival", l:"Tangerang" },
+            { d:"2023-04-08", r:"Best", t:"Top 10", c:"Coswalk", e:"Bukber Party Anico.id", l:"Tangerang" },
+            { d:"2023-07-30", r:"Best", t:"Top 10", c:"Coswalk", e:"Parade Musik Kuliner Anico.id", l:"Tangerang" },
+            // 2024
+            { d:"2024-06-21", r:"Best", t:"Top 10", c:"Coswalk", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
+            { d:"2024-06-21", r:"Best", t:"Best Costume", c:"Cosplay Competition", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
+            { d:"2024-06-22", r:"2", t:null, c:"Coswalk", e:"Kaihin Oboida Japan Fest", l:"Tangerang" },
+            { d:"2024-07-02", r:"Best", t:"Top 10", c:"Coswalk", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
+            { d:"2024-07-14", r:"Best", t:"Top 5", c:"Coswalk", e:"DransFestival 91 District", l:"Tangerang" },
+            { d:"2024-07-21", r:"3", t:null, c:"Coswalk", e:"CBD Ciledug Costume Festival", l:"Tangerang" },
+            { d:"2024-07-29", r:"Best", t:"Top 5", c:"Coswalk", e:"New Generation Fest Plaza Festival", l:"Jakarta" },
+            { d:"2024-08-03", r:"Best", t:"Favourite", c:"Coswalk", e:"MNP Fest", l:"Tangerang" },
+            { d:"2024-08-05", r:"3", t:null, c:"Coswalk", e:"Tomochi Hobbies Week 2.0", l:"Bekasi" },
+            { d:"2024-08-24", r:"Best", t:"Best Costume", c:"Cosplay Competition", e:"Holi Yeay 2.0 Hotel Episode", l:"Tangerang" },
+            { d:"2024-08-26", r:"1", t:null, c:"Cosplay Competition", e:"One District Cosplay Party Anico.id", l:"Jakarta" },
+            { d:"2024-09-01", r:"2", t:null, c:"Coswalk", e:"New Generation Festival Raya", l:"Jakarta" },
+            { d:"2024-09-09", r:"Best", t:"Best Costume", c:"Coswalk", e:"Broadway Revue Festival", l:"Tangerang" },
+            { d:"2024-09-15", r:"Best", t:"Best Male", c:"Coswalk", e:"Cosproject Fandom Summit", l:"Jakarta" },
+            { d:"2024-09-23", r:"Best", t:"Best Male", c:"Coswalk", e:"Depok Go Go!", l:"Depok" },
+            { d:"2024-09-30", r:"Best", t:"Best Armor", c:"Coswalk", e:"Tecno Game Fest", l:"Jakarta" },
+            { d:"2024-10-02", r:"Best", t:"Top 10", c:"Coswalk", e:"Amazing September Matsuri", l:"Tangerang" },
+            { d:"2024-10-02", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Amazing September Matsuri", l:"Tangerang" },
+            { d:"2024-10-07", r:"Best", t:"Best Game", c:"Coswalk", e:"AEONIME VOL. 3", l:"Jakarta" },
+            { d:"2024-10-08", r:"3", t:null, c:"Coswalk", e:"JCAFEST 8 Natsu Matsuri", l:"Tangerang" },
+            { d:"2024-10-15", r:"Best", t:"Top 10", c:"Coswalk", e:"Halloween Cosplay Party Anico.id", l:"Jakarta" },
+            { d:"2024-10-28", r:"1", t:null, c:"Coswalk", e:"Wonderful Cosplay Party 2024", l:"Tangerang" },
+            { d:"2024-11-04", r:"Best", t:"Top 5", c:"Coswalk", e:"Spookyland Matsuri SMS", l:"Tangerang" },
+            { d:"2024-12-16", r:"3", t:null, c:"Cosplay Competition", e:"BTN Property Expo", l:"Jakarta" },
+            { d:"2024-12-29", r:"3", t:null, c:"Coswalk", e:"Nishikai J-Pop Showcase 7", l:"Cilegon" },
+            // 2025
+            { d:"2025-01-29", r:"Best", t:"Best Action", c:"Coswalk", e:"Avani Breeze Matsuri", l:"Tangerang" },
+            { d:"2025-03-19", r:"Best", t:"Top 5", c:"Coswalk", e:"Wibusata", l:"Bekasi" },
+            { d:"2025-03-20", r:"Best", t:"1st Favorite", c:"Coswalk", e:"Mugen no Uta Festival", l:"Jatinegara" },
+            { d:"2025-03-27", r:"Best", t:"Best Male", c:"Coswalk", e:"NewGen Anicos", l:"Cikarang" },
+            { d:"2025-04-08", r:"Best", t:"Best Perform", c:"Coswalk", e:"Museum Mandiri Festival", l:"Jakarta" },
+            { d:"2025-04-15", r:"2", t:null, c:"Coswalk", e:"Aru No Matsuri 8", l:"Sukabumi" },
+            { d:"2025-04-23", r:"1", t:null, c:"Cosplay Competition", e:"Anico Anime Cosplay VOL. 9", l:"Jakarta" },
+            { d:"2025-05-17", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Midori Fest 4", l:"Jakarta" },
+            { d:"2025-05-19", r:"Best", t:"Favorite", c:"Coswalk", e:"NewGen Cos Sen", l:"Jakarta" },
+            { d:"2025-05-26", r:"1", t:null, c:"Coswalk", e:"Japan Matsuri Anico.id", l:"Jakarta" },
+            { d:"2025-06-02", r:"2", t:null, c:"Cosplay Competition", e:"Qsquare Pop Culture", l:"Bogor" },
+            { d:"2025-06-08", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Anime Festival Asia 2025", l:"Jakarta" },
+            { d:"2025-06-14", r:"Best", t:"Best Perform", c:"Coswalk", e:"Erafone & More Cosplay", l:"Jakarta" },
+            { d:"2025-06-20", r:"1", t:null, c:"Cosplay Competition", e:"Iban Commfest VOL. 2", l:"Bandar Lampung" },
+            { d:"2025-07-05", r:"3", t:null, c:"Cosplay Competition", e:"Yume No Mitai Festival", l:"Jakarta" },
+            { d:"2025-07-06", r:"1", t:null, c:"Coswalk", e:"Yume No Mitai Festival", l:"Jakarta" },
+            { d:"2025-07-12", r:"Best", t:"Best Perform", c:"Coswalk", e:"Purple Fest Extra", l:"Bekasi" },
+            { d:"2025-07-19", r:"2", t:null, c:"Coswalk", e:"Shinzoku Weebfest", l:"Cilegon" }
+        ];
+
+        async function injectIanData() {
+            const btn = document.getElementById('btnInjectIan');
+            const ian = members.find(m => m.name.toLowerCase().includes("ian") || m.name.toLowerCase().includes("kanekian"));
+            
+            if(!ian) {
+                alert("Member dengan nama 'Ian' atau 'KanekIan' tidak ditemukan! Pastikan nama member sudah dibuat.");
+                return;
+            }
+
+            if(!confirm(`Ditemukan member: ${ian.name}.\nYakin ingin memasukkan ${ianDataRaw.length} data kemenangan secara otomatis?`)) return;
+
+            btn.innerText = "⏳ Memproses...";
+            btn.style.background = "#95a5a6";
+
+            // Proses Data
+            if(!ian.history) ian.history = [];
+            
+            ianDataRaw.forEach(item => {
+                // Cek duplikasi (sederhana) agar tidak double kalau diklik 2x
+                const isExist = ian.history.some(h => h.event === item.e && h.date.startsWith(item.d));
+                if(!isExist) {
+                    ian.history.unshift({
+                        id: Date.now() + Math.random().toString(),
+                        event: item.e,
+                        category: item.c,
+                        char: "-", // Default karakter strip karena data tidak ada
+                        rank: item.r,
+                        judges: "-",
+                        bestTitle: item.t,
+                        proof: null,
+                        date: new Date(item.d).toISOString()
+                    });
+                }
+            });
+
+            try {
+                await db.collection("members").doc(ian.id.toString()).set(ian);
+                btn.innerText = "✅ Sukses!";
+                btn.style.background = "#2ecc71";
+                alert(`Berhasil! ${ianDataRaw.length} data kemenangan telah ditambahkan ke profil ${ian.name}.`);
+                closeModal('modalSettings');
+                // Buka profil Ian langsung
+                document.getElementById('editId').value = ian.id;
+                openProfile(ian.id);
+            } catch(e) {
+                console.error(e);
+                alert("Gagal menyimpan data. Cek koneksi.");
+                btn.innerText = "⚡ Inject Data Kemenangan Ian (Auto)";
+            }
+        }
+
+        // --- CORE FUNCTIONS ---
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function switchView(view) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + view).classList.add('active');
+            
+            const header = document.getElementById('mainHeader');
+            const title = document.getElementById('headerTitle');
+            const estText = document.getElementById('headerEst');
+            const logo = document.getElementById('teamLogo');
+
+            if(view === 'gamers') {
+                document.querySelector('.nav-btn-gamers').classList.add('active'); 
+                header.classList.add('gamers-mode');
+                
+                title.innerText = "AKANG GAMERS";
+                title.classList.add('title-gamers');
+                estText.innerText = "EST. 2026";
+                
+                if(gamersLogoUrl) {
+                    logo.src = gamersLogoUrl;
+                    logo.style.display = "block";
+                } else if(defaultLogoUrl) {
+                    logo.src = defaultLogoUrl; 
+                    logo.style.display = "block";
+                }
+                renderGamers(); 
+            } else {
+                header.classList.remove('gamers-mode');
+                title.innerText = "AKANG COSPLAY";
+                title.classList.remove('title-gamers');
+                estText.innerText = "EST. 2024";
+                
+                if(defaultLogoUrl) {
+                    logo.src = defaultLogoUrl;
+                    logo.style.display = "block";
+                }
+
+                if(view === 'leaderboard') { document.querySelector('.nav-tabs button:nth-child(1)').classList.add('active'); renderLeaderboard(); }
+                if(view === 'history') { 
+                    document.querySelector('.nav-tabs button:nth-child(2)').classList.add('active'); 
+                    resetHistoryAndRender();
+                }
+            }
+        }
+
+        // --- BACKUP & RESTORE ---
+        async function downloadBackupData() {
+            const btn = document.getElementById('btnDownloadBackup');
+            const originalText = btn.innerText;
+            btn.innerText = "⏳ Sedang mengambil data...";
+            btn.style.background = "#95a5a6";
+
+            try {
+                const membersSnap = await db.collection("members").get();
+                const membersData = [];
+                membersSnap.forEach(doc => membersData.push(doc.data()));
+
+                const gamesSnap = await db.collection("games").get();
+                const gamesData = [];
+                gamesSnap.forEach(doc => gamesData.push(doc.data()));
+
+                const fullBackup = {
+                    members: membersData,
+                    games: gamesData,
+                    timestamp: new Date().toISOString(),
+                    version: "2.0"
+                };
+
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", "backup_akang_cosplay_" + Date.now() + ".json");
+                document.body.appendChild(downloadAnchorNode); 
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+
+                alert("Backup Berhasil Didownload! Simpan file ini baik-baik.");
+
+            } catch (error) {
+                console.error("Backup Error:", error);
+                alert("Gagal melakukan backup. Cek koneksi internet.");
+            } finally {
+                btn.innerText = originalText;
+                btn.style.background = "#3498db";
+            }
+        }
+
+        function restoreToFirebase() {
+            const file = document.getElementById('restoreFile').files[0];
+            if(!file) { alert("Pilih file .json terlebih dahulu!"); return; }
+            const btn = document.getElementById('btnRestoreAction');
+            btn.innerText = "⏳ Memproses Restore...";
+            btn.style.background = "#95a5a6";
+            
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const parsedData = JSON.parse(e.target.result);
+                    let membersToRestore = [];
+                    let gamesToRestore = [];
+
+                    if(Array.isArray(parsedData)) {
+                        membersToRestore = parsedData;
+                    } else if (parsedData.members) {
+                        membersToRestore = parsedData.members;
+                        if(parsedData.games) gamesToRestore = parsedData.games;
+                    }
+
+                    for (const member of membersToRestore) {
+                        await db.collection("members").doc(member.id.toString()).set(member);
+                    }
+                    for (const game of gamesToRestore) {
+                        await db.collection("games").doc(game.id.toString()).set(game);
+                    }
+
+                    btn.innerText = "⬆️ Upload JSON ke Database"; btn.style.background = "#e67e22";
+                    alert(`Restore Selesai! ${membersToRestore.length} Member dan ${gamesToRestore.length} Game berhasil dipulihkan.`);
+                    closeModal('modalSettings');
+                    renderAll();
+
+                } catch(err) { 
+                    console.error(err);
+                    alert("File rusak atau format salah!"); 
+                    btn.innerText = "⬆️ Upload JSON ke Database"; btn.style.background = "#e67e22";
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function saveLogo() { const file = document.getElementById('settingLogo').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { db.collection("settings").doc("global").set({ logo: e.target.result }).then(() => { alert("Logo Default tersimpan!"); }); }; reader.readAsDataURL(file); } }
+        function saveGamersLogo() { const file = document.getElementById('settingGamersLogo').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { db.collection("settings").doc("gamers").set({ logo: e.target.result }).then(() => { alert("Logo Gamers tersimpan!"); }); }; reader.readAsDataURL(file); } }
+
+        // --- GAMERS LOGIC ---
+        function renderGamers() {
+            let rein = members.find(m => m.name.toLowerCase().includes("rein"));
+            let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla"));
+            if(rein && rein.photo) document.getElementById('img-gamer-rein').src = rein.photo;
+            if(nabilla && nabilla.photo) document.getElementById('img-gamer-nabilla').src = nabilla.photo;
+            renderGames();
+        }
+
+        function renderGames() {
+            const container = document.getElementById('game-catalog-list');
+            container.innerHTML = "";
+            if(games.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.9em;'>Belum ada game yang dimainkan.</p>"; }
+            games.forEach(g => {
+                let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>` : `<button class="btn-delete-game" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>`;
+                container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}" onerror="this.src='https://via.placeholder.com/200x350?text=No+Image'"><div class="game-title">${escapeHtml(g.name)}</div></div>`;
+            });
+            const delBtns = document.querySelectorAll('.btn-delete-game');
+            if(isAdmin) delBtns.forEach(b => b.classList.add('show-admin')); else delBtns.forEach(b => b.classList.remove('show-admin'));
+        }
+
+        function submitAddGame() {
+            const name = document.getElementById('addGameName').value;
+            const file = document.getElementById('addGameImage').files[0];
+            if(!name) { alert("Nama game harus diisi!"); return; }
+            const finalizeSave = (imgBase64) => {
+                const newGame = { id: Date.now(), name: name, image: imgBase64 };
+                db.collection("games").doc(newGame.id.toString()).set(newGame).then(() => {
+                    closeModal('modalAddGame'); document.getElementById('addGameName').value = ""; document.getElementById('addGameImage').value = "";
+                });
+            };
+            if(file) {
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                        const MAX_HEIGHT = 800; let width = img.width, height = img.height;
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                        canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                        finalizeSave(canvas.toDataURL('image/jpeg', 0.8));
+                    }
+                };
+            } else { finalizeSave("https://via.placeholder.com/200x350?text=" + encodeURIComponent(name)); }
+        }
+
+        function deleteGame(id) { if(confirm("Yakin ingin menghapus game ini dari katalog?")) { db.collection("games").doc(id.toString()).delete(); } }
+        function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('show'); }
+
+        // --- BOT LOGIC ---
+        function openBotModal() {
+            lastTopic = ""; const chatArea = document.getElementById('chatArea'); document.getElementById('chatInput').value = ""; 
+            chatArea.innerHTML = `<div class="chat-msg bot"><div class="bubble bot">Halo! Saya Akang Bot 🤖.<br>Ada yang bisa saya bantu tentang <b>Akang Cosplay</b>? Silakan pilih topik di menu, atau ketik pertanyaanmu secara langsung!</div></div>`;
+            renderBotOptions(); openModal('modalBot');
+        }
+
+        function renderBotOptions() {
+            const optionsArea = document.getElementById('chatOptions');
+            optionsArea.innerHTML = `<div class="bot-menu-title">Daftar Topik:</div>`;
+            botFaqData.forEach((item, index) => { optionsArea.innerHTML += `<button class="bot-opt-btn" onclick="askBot(${index})">${item.q}</button>`; });
+        }
+
+        function askBot(index) {
+            lastTopic = ""; const chatArea = document.getElementById('chatArea'); const item = botFaqData[index];
+            chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${item.q}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight;
+            setTimeout(() => { chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${item.a}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight; }, 600); 
+        }
+
+        function handleChatEnter(event) { if (event.key === 'Enter') sendCustomMessage(); }
+
+        function sendCustomMessage() {
+            const inputField = document.getElementById('chatInput'); 
+            const rawText = inputField.value.trim(); 
+            const safeText = escapeHtml(rawText);
+            
+            if (!rawText) return; 
+            const chatArea = document.getElementById('chatArea'); chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${safeText}</div></div>`;
+            inputField.value = ""; chatArea.scrollTop = chatArea.scrollHeight;
+            setTimeout(() => {
+                let botReply = "Hmm.. untuk detail informasi tersebut, bisa Anda tanyakan langsung melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! Terimakasih! 😊";
+                chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${botReply}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight;
+            }, 700);
+        }
+
+        // --- RIWAYAT LOGIC ---
+        function filterHistory(type, btn) {
+            currentHistoryFilter = type;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            if(btn) btn.classList.add('active'); 
+            resetHistoryAndRender();
+        }
+
+        function resetHistoryAndRender() {
+            displayedItemsCount = 0;
+            document.getElementById('global-history-list').innerHTML = "";
+            prepareHistoryData();
+            loadNextHistoryBatch();
+        }
+
+        function prepareHistoryData() {
+            const searchQuery = document.getElementById('searchHistory').value.toLowerCase();
+            filteredGlobalHistoryData = [];
+
+            members.forEach(m => {
+                if(m.history) m.history.forEach(h => { 
+                    filteredGlobalHistoryData.push({ 
+                        ...h, 
+                        memberId: m.id, 
+                        memberName: m.name, 
+                        memberPhoto: m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png' 
+                    }); 
+                });
+            });
+
+            if(currentHistoryFilter !== 'all') { 
+                filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { 
+                    if(currentHistoryFilter === 'Coswalk') return item.category === 'Coswalk'; 
+                    if(currentHistoryFilter === 'Coscom') return item.category === 'Cosplay Competition' || item.category === 'Coscom'; 
+                    return true; 
+                }); 
+            }
+
+            if(searchQuery !== "") { 
+                filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { 
+                    let stringToSearch = `${item.memberName || ''} ${item.event || ''} ${item.char || ''} ${item.bestTitle || ''} juara ${item.rank || ''}`.toLowerCase(); 
+                    return stringToSearch.includes(searchQuery); 
+                }); 
+            }
+
+            filteredGlobalHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        function loadNextHistoryBatch() {
+            const container = document.getElementById('global-history-list');
+            const batch = filteredGlobalHistoryData.slice(displayedItemsCount, displayedItemsCount + itemsBatchSize);
+
+            if(batch.length === 0 && displayedItemsCount === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>Pencarian tidak ditemukan.</p>";
+                return;
+            }
+
+            batch.forEach(item => {
+                let borderClass = (item.category === 'Cosplay Competition' || item.category === 'Coscom') ? 'feed-comp' : '';
+                let safeBestTitle = escapeHtml(item.bestTitle || 'Best Category');
+                let safeRankText = item.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(item.rank);
+                let safeEvent = escapeHtml(item.event);
+                let safeChar = escapeHtml(item.char);
+                let safeMemberName = escapeHtml(item.memberName);
+                let safeJudges = escapeHtml(item.judges || '');
+                
+                let proofImg = item.proof ? `<img src="${item.proof}" class="feed-img-proof" onclick="viewImage('${item.proof}')" loading="lazy">` : '';
+                let adminBtns = isAdmin ? `<div class="admin-controls show-admin"><button class="btn-mini-action" style="background:#f39c12;" onclick="openEditHistory('${item.memberId}', '${item.id}')"><i class="fas fa-pen"></i></button><button class="btn-mini-action" style="background:var(--danger);" onclick="deleteHistory('${item.memberId}', '${item.id}')"><i class="fas fa-trash"></i></button></div>` : '';
+                let judgeText = (safeJudges && safeJudges !== '-') ? `<br><small style="color:#aaa;">👮 Juri: ${safeJudges}</small>` : '';
+
+                container.innerHTML += `
+                    <div class="feed-card ${borderClass}">
+                        ${adminBtns}
+                        <div class="feed-rank">${safeRankText}</div>
+                        <div class="feed-header">
+                            <img src="${item.memberPhoto}" class="feed-avatar">
+                            <div>
+                                <div class="feed-title">${safeMemberName}</div>
+                                <div class="feed-meta">${new Date(item.date).toLocaleDateString('id-ID')}</div>
+                            </div>
+                        </div>
+                        <div style="margin-top:5px;">
+                            <strong>${safeEvent}</strong> (${item.category === 'Cosplay Competition' ? 'Coscom' : item.category})<br>
+                            Cosplay: <span style="color:var(--primary)">${safeChar}</span>
+                            ${judgeText}
+                        </div>
+                        ${proofImg}
+                    </div>`;
+            });
+
+            displayedItemsCount += batch.length;
+        }
+
+        const scrollObserver = new IntersectionObserver((entries) => {
+            if(entries[0].isIntersecting && displayedItemsCount < filteredGlobalHistoryData.length) {
+                loadNextHistoryBatch();
+            }
+        }, { threshold: 0.1 });
+
+        scrollObserver.observe(document.getElementById('scroll-trigger'));
+
+        // --- LEADERBOARD & PROFILE LOGIC ---
+        function renderLeaderboard() {
+            const list = document.getElementById('leaderboard-list'); list.innerHTML = "";
+            if(members.length === 0) { document.getElementById('empty-lb').style.display = 'block'; return; }
+            document.getElementById('empty-lb').style.display = 'none';
+
+            let sortedMembers = [...members];
+            sortedMembers.forEach(m => m.totalWins = m.history ? m.history.length : 0);
+            sortedMembers.sort((a, b) => b.totalWins - a.totalWins);
+
+            sortedMembers.forEach((m, i) => {
+                let rank = i + 1; let trophyColor = rank === 1 ? 'gold' : (rank === 2 ? 'silver' : '#cd7f32');
+                let photo = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                let safeName = escapeHtml(m.name);
+                
+                list.innerHTML += `<div class="leaderboard-card" onclick="openProfile('${m.id}')"><div class="rank-badge" style="color:${trophyColor}">#${rank}</div><img src="${photo}" class="avatar-small"><div class="lb-info"><h3>${safeName}</h3><span>${m.repertoire ? m.repertoire.length : 0} Kostum</span></div><div class="lb-stats"><div>${m.totalWins}</div></div></div>`;
+            });
+        }
+
+        function openProfile(id) {
+            const m = members.find(x => x.id == id); if(!m) return; 
+            const delProfileBtn = document.querySelector('.btn-delete-profile');
+            if(isAdmin) delProfileBtn.classList.add('show-admin'); else delProfileBtn.classList.remove('show-admin');
+
+            document.getElementById('editId').value = m.id; 
+            document.getElementById('p-name').innerText = m.name; 
+            document.getElementById('p-bio').innerText = m.bio || "-"; 
+            
+            document.getElementById('p-photo').src = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            
+            let coswalkCount = m.history ? m.history.filter(h => h.category === 'Coswalk').length : 0;
+            let compCount = m.history ? m.history.filter(h => h.category === 'Cosplay Competition' || h.category === 'Coscom').length : 0;
+            
+            document.getElementById('p-stat-coswalk').innerText = coswalkCount; document.getElementById('p-stat-comp').innerText = compCount;
+
+            const igBadge = document.getElementById('p-ig');
+            if(m.ig && m.ig.trim() !== "") { let igLink = m.ig.trim(); if(!igLink.startsWith('http')) { igLink = 'https://instagram.com/' + igLink.replace('@', ''); } igBadge.href = igLink; igBadge.style.display = 'inline-flex'; } else { igBadge.style.display = 'none'; }
+
+            const galGrid = document.getElementById('p-gallery-grid'); galGrid.innerHTML = "";
+            if(m.gallery && m.gallery.length > 0) {
+                m.gallery.forEach((imgSrc, index) => {
+                    let delBtn = isAdmin ? `<button class="btn-del-photo show-admin" onclick="deleteGalleryPhoto('${m.id}', ${index})"><i class="fas fa-trash"></i></button>` : '';
+                    galGrid.innerHTML += `<div class="gallery-item">${delBtn}<img src="${imgSrc}" class="gallery-img" onclick="viewImage('${imgSrc}')"></div>`;
+                });
+            } else { galGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.8em;'>Belum ada foto di galeri.</p>"; }
+
+            const repDiv = document.getElementById('p-repertoire'); repDiv.innerHTML = "";
+            if(m.repertoire) m.repertoire.forEach(r => repDiv.innerHTML += `<span class="tag">${escapeHtml(r)}</span>`);
+
+            const histDiv = document.getElementById('p-history-list'); histDiv.innerHTML = "";
+            if(m.history) {
+                let sortedHistory = [...m.history].sort((a,b) => new Date(b.date) - new Date(a.date));
+                sortedHistory.forEach(h => {
+                    let safeBestTitle = escapeHtml(h.bestTitle || 'Best');
+                    let rankText = h.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(h.rank); 
+                    let color = h.category === 'Coswalk' ? 'var(--accent-blue)' : 'var(--gold)'; let proofIcon = h.proof ? '📷' : '';
+                    let actionBtns = isAdmin ? `<div style="display:flex; gap:5px;"><button style="background:none; border:none; color:#f39c12; cursor:pointer;" onclick="openEditHistory('${m.id}', '${h.id}')"><i class="fas fa-pen"></i></button><button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="deleteHistory('${m.id}', '${h.id}')"><i class="fas fa-trash"></i></button></div>` : '';
+                    
+                    histDiv.innerHTML += `<div style="background:#3d4655; padding:10px; margin-bottom:10px; border-radius:5px; border-left:3px solid ${color}; display:flex; justify-content:space-between; align-items:center;"><div><span style="font-weight:bold">${escapeHtml(h.event)}</span><br><small>${escapeHtml(h.char)} | ${rankText} ${proofIcon}</small></div>${actionBtns}</div>`;
+                });
+            }
+            switchView('profile');
+        }
+
+        function submitMember() {
+            const name = document.getElementById('regName').value; const bio = document.getElementById('regBio').value; const ig = document.getElementById('regIg').value; const file = document.getElementById('regPhoto').files[0];
+            if(!name) { alert("Isi nama!"); return; }
+            const reader = new FileReader(); reader.onload = (e) => saveMember(name, bio, ig, e.target.result);
+            if(file) reader.readAsDataURL(file); else saveMember(name, bio, ig, null);
+        }
+
+        function saveMember(name, bio, ig, photo) {
+            const newMember = { id: Date.now(), name, bio, ig, photo, history: [], repertoire: [], gallery: [] };
+            db.collection("members").doc(newMember.id.toString()).set(newMember).then(() => { closeModal('modalMember'); });
+        }
+
+        function openEditModal() {
+            const id = document.getElementById('editId').value; const m = members.find(x => x.id == id);
+            document.getElementById('editName').value = m.name; document.getElementById('editBio').value = m.bio || ""; document.getElementById('editIg').value = m.ig || ""; document.getElementById('editPhoto').value = "";
+            currentTempRepertoire = m.repertoire ? [...m.repertoire] : []; renderEditRepertoire(); openModal('modalEdit');
+        }
+
+        function saveEditProfile() {
+            const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); const file = document.getElementById('editPhoto').files[0];
+            const finalize = (photo) => {
+                m.name = document.getElementById('editName').value; m.bio = document.getElementById('editBio').value; m.ig = document.getElementById('editIg').value;
+                if(photo) m.photo = photo; m.repertoire = [...currentTempRepertoire];
+                db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEdit'); openProfile(id); });
+            };
+            if(file) { const reader = new FileReader(); reader.onload = (e) => finalize(e.target.result); reader.readAsDataURL(file); } else finalize(null);
+        }
+
+        function submitWin() {
+            const id = document.getElementById('winMember').value; const event = document.getElementById('winEvent').value; const cat = document.getElementById('winCat').value; const char = document.getElementById('winChar').value; const rank = document.getElementById('winRank').value; const judges = document.getElementById('winJudges').value; const bestTitle = document.getElementById('winBestTitle').value; const proofFile = document.getElementById('winProof').files[0]; const dateInput = document.getElementById('winDate').value;
+            if(!event || !char) { alert("Data kurang lengkap!"); return; }
+            const finalDate = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString();
+
+            const processSave = (proofBase64) => {
+                const m = members.find(x => x.id == id); if(!m.history) m.history = [];
+                m.history.unshift({ id: Date.now() + Math.random().toString(), event, category: cat, char, rank, judges, bestTitle: (rank === 'Best' ? bestTitle : null), proof: proofBase64, date: finalDate });
+                if(!m.repertoire) m.repertoire = []; if(!m.repertoire.includes(char)) m.repertoire.push(char);
+                db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalWin'); });
+            };
+
+            if(proofFile) {
+                const reader = new FileReader(); reader.readAsDataURL(proofFile);
+                reader.onload = (e) => {
+                    const img = new Image(); img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500;
+                        let w = img.width, h = img.height;
+                        if(w>h) { if(w>MAX_SIZE) { h*=MAX_SIZE/w; w=MAX_SIZE; } } else { if(h>MAX_SIZE) { w*=MAX_SIZE/h; h=MAX_SIZE; } }
+                        canvas.width=w; canvas.height=h; ctx.drawImage(img,0,0,w,h);
+                        processSave(canvas.toDataURL('image/jpeg', 0.6));
+                    }
+                };
+            } else { processSave(null); }
+        }
+
+        function openEditHistory(memberId, historyId) {
+            const m = members.find(x => x.id == memberId); const h = m.history.find(x => x.id == historyId);
+            document.getElementById('editHistMemberId').value = memberId; document.getElementById('editHistId').value = historyId; document.getElementById('editHistEvent').value = h.event; document.getElementById('editHistCat').value = h.category; document.getElementById('editHistChar').value = h.char; document.getElementById('editHistJudges').value = h.judges || ""; document.getElementById('editHistRank').value = h.rank;
+            if(h.date) { let dateObj = new Date(h.date); let year = dateObj.getFullYear(); let month = String(dateObj.getMonth() + 1).padStart(2, '0'); let day = String(dateObj.getDate()).padStart(2, '0'); document.getElementById('editHistDate').value = `${year}-${month}-${day}`; }
+            const div = document.getElementById('divEditBestTitle'); if(h.rank === 'Best') { div.classList.remove('hidden'); document.getElementById('editHistBestTitle').value = h.bestTitle; } else { div.classList.add('hidden'); }
+            openModal('modalEditHistory');
+        }
+
+        function toggleEditBestInput() {
+            const rank = document.getElementById('editHistRank').value; const div = document.getElementById('divEditBestTitle');
+            if(rank === 'Best') div.classList.remove('hidden'); else div.classList.add('hidden');
+        }
+
+        function saveEditHistory() {
+            const mId = document.getElementById('editHistMemberId').value; const hId = document.getElementById('editHistId').value; const m = members.find(x => x.id == mId); const h = m.history.find(x => x.id == hId);
+            h.event = document.getElementById('editHistEvent').value; h.category = document.getElementById('editHistCat').value; h.char = document.getElementById('editHistChar').value; h.judges = document.getElementById('editHistJudges').value; h.rank = document.getElementById('editHistRank').value;
+            const dateInput = document.getElementById('editHistDate').value; if(dateInput) h.date = new Date(dateInput).toISOString();
+            if(h.rank === 'Best') h.bestTitle = document.getElementById('editHistBestTitle').value; else h.bestTitle = null;
+            db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEditHistory'); });
+        }
+
+        function uploadGalleryPhoto(input) {
+            const file = input.files[0]; if(!file) return;
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image(); img.src = event.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500; 
+                    let width = img.width, height = img.height;
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); const id = document.getElementById('editId').value; const m = members.find(x => x.id == id);
+                    if(!m.gallery) m.gallery = []; m.gallery.push(dataUrl);
+                    db.collection("members").doc(m.id.toString()).set(m).then(() => { openProfile(id); });
+                }
+            }
+            input.value = ""; 
+        }
+
+        function deleteGalleryPhoto(memberId, photoIndex) { if(confirm("Hapus foto ini dari galeri?")) { const m = members.find(x => x.id == memberId); m.gallery.splice(photoIndex, 1); db.collection("members").doc(m.id.toString()).set(m).then(() => { openProfile(memberId); }); } }
+
+        async function toggleAdminMode() {
+            const adminOnlyBtns = document.querySelectorAll('.admin-only'); 
+            if(!isAdmin) {
+                let pass = prompt("Masukkan Kunci Admin:");
+                if(pass) {
+                    const hash = await sha256(pass);
+                    if(hash === ADMIN_HASH) {
+                        isAdmin = true; document.getElementById('iconLock').classList.replace('fa-lock', 'fa-lock-open'); document.getElementById('iconLock').classList.add('admin-active'); document.getElementById('adminBadge').style.display = 'block'; document.getElementById('btnGlobalSettings').style.display = 'block'; adminOnlyBtns.forEach(btn => btn.style.display = 'block'); alert("Admin Mode: AKTIF."); renderAll(); 
+                    } else { alert("Password Salah!"); }
+                }
+            } else {
+                isAdmin = false; document.getElementById('iconLock').classList.replace('fa-lock-open', 'fa-lock'); document.getElementById('iconLock').classList.remove('admin-active'); document.getElementById('adminBadge').style.display = 'none'; document.getElementById('btnGlobalSettings').style.display = 'none'; adminOnlyBtns.forEach(btn => btn.style.display = 'none'); renderAll();
+            }
+        }
+
+        function deleteHistory(memberId, historyId) { if(confirm("Hapus history ini?")) { const m = members.find(x => x.id == memberId); m.history = m.history.filter(h => h.id !== historyId); db.collection("members").doc(m.id.toString()).set(m); } }
+        function deleteCurrentMember() { const id = document.getElementById('editId').value; if(confirm("AWAS! Hapus member akan menghapus semua historynya. Lanjut?")) { db.collection("members").doc(id.toString()).delete().then(() => { switchView('leaderboard'); }); } }
+
+        function addRepertoireTag() { 
+            const val = document.getElementById('repInput').value; 
+            const safeVal = escapeHtml(val);
+            if(safeVal && !currentTempRepertoire.includes(safeVal)) { currentTempRepertoire.push(safeVal); renderEditRepertoire(); document.getElementById('repInput').value = ""; } 
+        }
+        
+        function renderEditRepertoire() { 
+            const div = document.getElementById('editRepList'); div.innerHTML = ""; 
+            currentTempRepertoire.forEach((t, i) => { div.innerHTML += `<span class="tag">${t} <i class="fas fa-times" onclick="currentTempRepertoire.splice(${i},1); renderEditRepertoire()"></i></span>`; }); 
+        }
+        
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        function renderAll() { 
+            if(document.getElementById('view-leaderboard').classList.contains('active')) renderLeaderboard();
+            if(document.getElementById('view-history').classList.contains('active')) resetHistoryAndRender();
+            if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value);
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers();
+        }
+        function openModalWin() { const sel = document.getElementById('winMember'); sel.innerHTML = ""; members.forEach(m => sel.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)}</option>`); document.getElementById('divBestTitle').classList.add('hidden'); openModal('modalWin'); }
+        function toggleBestInput() { const rank = document.getElementById('winRank').value; const div = document.getElementById('divBestTitle'); if(rank === 'Best') div.classList.remove('hidden'); else div.classList.add('hidden'); }
+        function viewImage(src) { let w = window.open(""); w.document.write(`<img src="${src}" style="max-width:100%">`); }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
+    </script>
+</body>
+</html>
