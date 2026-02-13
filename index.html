@@ -715,7 +715,7 @@
                 <div class="bot-chat-section">
                     <div id="chatArea" class="chat-box"></div>
                     <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan (cth: 'ig rein mana?')..." onkeypress="handleChatEnter(event)">
+                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan (cth: 'cara join?')..." onkeypress="handleChatEnter(event)">
                         <button onclick="sendCustomMessage()"><i class="fas fa-paper-plane"></i></button>
                     </div>
                 </div>
@@ -1179,30 +1179,53 @@
 
             setTimeout(() => { 
                 let botReply = "";
-                if (lowerText.includes('ig') || lowerText.includes('instagram') || lowerText.includes('sosmed') || lowerText.includes('sosial media')) {
+
+                // --- SMART KEYWORD DETECTION (Logic Baru) ---
+                
+                // 1. APA ITU AKANG COSPLAY
+                if (lowerText.includes('apa itu akang cosplay') || lowerText.includes('tentang akang cosplay') || (lowerText.includes('akang cosplay') && lowerText.includes('adalah'))) {
+                    botReply = "<b>Akang Cosplay</b> adalah tim cosplay yang didirikan pada 14 Juni 2024. ✨<br>Berawal dari hobi, kami tumbuh menjadi komunitas yang saling mendukung dalam kompetisi, pembuatan properti, hingga event jejepangan.";
+                }
+                // 2. APA ITU AKANG TRAINEE
+                else if (lowerText.includes('apa itu akang trainee') || lowerText.includes('tentang akang trainee') || lowerText.includes('tentang trainee') || (lowerText.includes('trainee') && lowerText.includes('adalah'))) {
+                    botReply = "<b>Akang Trainee</b> adalah wadah bagi teman-teman yang baru bergabung untuk berlatih bersama & berbagi info event. 🎓<br>Ini adalah jembatan bagi kamu yang ingin belajar sebelum menjadi Official Member.";
+                }
+                // 3. CARA JOIN / DAFTAR
+                else if (lowerText.includes('daftar') || lowerText.includes('join') || lowerText.includes('gabung') || lowerText.includes('masuk') || lowerText.includes('bikin akun')) {
+                    botReply = "Caranya gampang banget, Kang! Ikuti langkah ini:<br>1. Klik tombol <b>Login</b> di pojok kanan atas.<br>2. Klik tab <b>Daftar Member</b>.<br>3. Isi Email, Password, dan Nama.<br>4. Klik tombol Daftar.<br><br>Setelah itu, Akang resmi jadi Trainee dan bisa mulai upload foto! 🎉";
+                }
+                // 4. SOSMED (IG/Instagram)
+                else if (lowerText.includes('ig') || lowerText.includes('instagram') || lowerText.includes('sosmed') || lowerText.includes('sosial media')) {
                     botReply = "Untuk update foto dan video terbaru, yuk follow Instagram kami:<br>👉 <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br><br>Member kami:<br>- Rein: @reincoser_<br>- Nabilla: @nabillacoser<br>- Ian: @ian07_";
                 } 
-                else if (lowerText.includes('yt') || lowerText.includes('youtube') || lowerText.includes('live') || lowerText.includes('stream')) {
+                // 5. YOUTUBE / GAMERS
+                else if (lowerText.includes('yt') || lowerText.includes('youtube') || lowerText.includes('live') || lowerText.includes('stream') || lowerText.includes('gamers')) {
                     botReply = "Mabar dan keseruan live stream ada di YouTube kami:<br>🔴 <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a><br>Jangan lupa Subscribe ya! 🎮";
                 }
+                // 6. TIKTOK
                 else if (lowerText.includes('tiktok') || lowerText.includes('tt')) {
                     botReply = "Video pendek kocak kami ada di TikTok:<br>🎵 <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a>";
                 }
-                else if (lowerText.includes('daftar') || lowerText.includes('join') || lowerText.includes('masuk')) {
-                    botReply = "Mau gabung? Gampang! Klik tombol <b>Login</b> di pojok kanan atas, lalu pilih tab <b>Daftar Member</b>. Gratis kok! 😄";
+                // 7. SIAPA MEMBER / OWNER
+                else if (lowerText.includes('rein') || lowerText.includes('nabilla') || lowerText.includes('ian') || lowerText.includes('siapa aja')) {
+                    botReply = "Tim Inti (Official) kami saat ini adalah:<br>1. <b>Rein</b> (Founder/Cosplayer)<br>2. <b>Nabilla</b> (Cosplayer/Talent)<br>3. <b>Ian</b> (Maker/Cosplayer)<br><br>Kami juga punya banyak teman-teman Trainee yang keren lho! 😎";
                 }
-                else if (lowerText.includes('halo') || lowerText.includes('hi') || lowerText.includes('pagi') || lowerText.includes('malam')) {
-                    botReply = "Halo juga! 👋 Ada yang bisa Akang bantu?";
+                // 8. SAPAAN UMUM
+                else if (lowerText.includes('halo') || lowerText.includes('hi') || lowerText.includes('pagi') || lowerText.includes('malam') || lowerText.includes('siang') || lowerText.includes('sore')) {
+                    botReply = "Halo juga! 👋 Ada yang bisa Akang bantu seputar Akang Cosplay?";
                 }
+                // 9. DEFAULT (Tidak Mengerti)
                 else {
-                    botReply = "Maaf, saya kurang paham maksudnya. 🤔<br>Bisa coba gunakan kata kunci seperti: 'sosmed', 'youtube', 'cara daftar', atau pilih topik di menu samping.";
+                    botReply = "Maaf, saya kurang paham maksudnya. 🤔<br>Coba tanya: 'Apa itu Akang Cosplay?', 'Gimana cara daftar?', atau 'Minta sosmed dong'.";
                 }
+
                 chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${botReply}</div></div>`; 
                 chatArea.scrollTop = chatArea.scrollHeight; 
             }, 700); 
         }
 
-        const botFaqData = [ { q: "Apa itu Akang Cosplay?", a: "Akang Cosplay adalah sebuah tim cosplay yang beranggotakan KanekIan/Ian, Nabilla, dan Rein/Azrael. Kami resmi berdiri sejak 14 Juni 2024! ✨" }, { q: "Apa itu Akang Gamers? / Live Stream", a: "🎮 <b>Akang Gamers</b> adalah divisi khusus dari Akang Cosplay! Di sini, <b>Rein</b> dan <b>Nabilla</b> rutin melakukan live streaming, main game bareng, dan ngobrol santai dengan para viewers.<br><br>Yuk mampir dan follow kami di:<br>- YT: <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a><br>- IG: <a href='https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z' target='_blank' class='bot-link'>@akanggamersofc</a><br>- TikTok: <a href='https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y' target='_blank' class='bot-link'>@realaffiliate1372</a>" }, { q: "Boleh minta Sosmed Akang Cosplay & Membernya?", a: "Tentu saja! Silakan kepoin dan follow media sosial kami ya:<br><br>✨ <b>Akang Cosplay:</b><br>- IG: <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br>- TikTok: <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a><br>- YouTube: <a href='https://youtube.com/@akangcosplay?si=oEZArK_Fnyq5ObUt' target='_blank' class='bot-link'>Akang Cosplay</a><br><br>👥 <b>Instagram Member:</b><br>👉 KanekIan/Ian: <a href='https://www.instagram.com/ian07_/' target='_blank' class='bot-link'>@ian07_</a><br>👉 Rein/Azrael: <a href='https://www.instagram.com/reincoser_/' target='_blank' class='bot-link'>@reincoser_</a><br>👉 Nabilla: <a href='https://www.instagram.com/nabillacoser/' target='_blank' class='bot-link'>@nabillacoser</a>" }, { q: "Gimana cara join jadi member?", a: "Buat kamu yang ingin bergabung, sekarang kamu bisa langsung <b>Daftar (Register)</b> di website ini! Klik tombol 'Login' di pojok atas lalu pilih tab 'Daftar Member'. Setelah itu kamu bisa mulai mengisi data kostum dan prestasi kamu sendiri!" }, { q: "Terima jasa sewa kostum / makeup?", a: "Wah, untuk saat ini kami belum menyediakan jasa rental kostum, pembuat properti (maker), ataupun makeup cosplay. Tapi tenang aja, kami sedang mempertimbangkan untuk membuka jasa tersebut di masa mendatang. Ditunggu terus ya update dari kami! 🧵🎨" }, { q: "Bisa kerja sama (Juri/Guest Star)?", a: "Tentu saja! Akang Cosplay sangat terbuka dan antusias dengan berbagai tawaran kerja sama, baik sebagai Juri, Guest Star, maupun Talent. Yuk, diskusikan konsep kerjasamanya melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 🤝🎤" } ];
+        const botFaqData = [ { q: "Apa itu Akang Cosplay?", a: "<b>Akang Cosplay</b> adalah tim cosplay yang didirikan pada 14 Juni 2024. ✨<br>Berawal dari hobi, kami tumbuh menjadi komunitas yang saling mendukung dalam kompetisi, pembuatan properti, hingga event jejepangan." }, { q: "Apa itu Akang Gamers?", a: "🎮 <b>Akang Gamers</b> adalah divisi khusus dari Akang Cosplay! Di sini, <b>Rein</b> dan <b>Nabilla</b> rutin melakukan live streaming, main game bareng, dan ngobrol santai dengan para viewers.<br><br>Yuk mampir dan follow kami di:<br>- YT: <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a>" }, { q: "Sosmed Akang Cosplay?", a: "Silakan kepoin kami ya:<br>✨ <b>IG:</b> <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br>🎵 <b>TikTok:</b> <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a><br>🔴 <b>YouTube:</b> <a href='https://youtube.com/@akangcosplay?si=oEZArK_Fnyq5ObUt' target='_blank' class='bot-link'>Akang Cosplay</a>" }, { q: "Cara Join Member?", a: "Caranya gampang banget, Kang! Ikuti langkah ini:<br>1. Klik tombol <b>Login</b> di pojok kanan atas.<br>2. Klik tab <b>Daftar Member</b>.<br>3. Isi Email, Password, dan Nama.<br>4. Klik tombol Daftar.<br><br>Setelah itu, Akang resmi jadi Trainee dan bisa mulai upload foto! 🎉" }, { q: "Terima jasa sewa kostum?", a: "Untuk saat ini kami belum menyediakan jasa rental kostum, maker properti, atau makeup secara umum. Tapi ditunggu saja update-nya ya! 🧵🎨" }, { q: "Kerja sama (Juri/Guest)?", a: "Tentu saja! Kami sangat terbuka untuk kerja sama sebagai Juri, Guest Star, atau Talent. Yuk DM kami di Instagram <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a>! 🤝" } ];
+        
         async function injectIanData() { alert("Fitur ini membutuhkan akses Admin penuh ke Database."); }
         
         // --- LOGIC FILTERING BARU ---
@@ -1387,16 +1410,21 @@
             
             let isOwner = (currentUser && currentUser.uid === m.id);
             
-            if (isOwner) {
+            // --- LOGIKA TOMBOL KEAMANAN BARU ---
+            // Tombol Edit: Owner ATAU Admin boleh
+            if (isOwner || isAdmin) {
                 btnEdit.style.display = "block";
-                delProfileBtn.style.display = "block";
-            } else if (isAdmin) {
-                btnEdit.style.display = "block";
-                delProfileBtn.style.display = "block";
             } else {
                 btnEdit.style.display = "none";
+            }
+
+            // Tombol Hapus Member: HANYA ADMIN YANG BOLEH
+            if (isAdmin) {
+                delProfileBtn.style.display = "block";
+            } else {
                 delProfileBtn.style.display = "none";
             }
+            // -----------------------------------
 
             const status = m.status || 'official';
             if(status === 'official') {
