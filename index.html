@@ -3,19 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Akang Cosplay - Online Manager (Pro Data)</title>
+    <title>Akang Cosplay - Official App</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
     <style>
         /* --- LOAD CUSTOM FONT --- */
         @font-face {
             font-family: 'HardRace';
             src: url('Hard Race.otf') format('opentype');
-            font-weight: normal;
-            font-style: normal;
+            font-weight: normal; font-style: normal;
         }
 
         /* --- CSS VARIABLES & RESET --- */
@@ -37,15 +37,13 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--dark);
             color: var(--light);
-            margin: 0;
-            padding-bottom: 80px;
+            margin: 0; padding-bottom: 80px;
         }
 
         /* --- HEADER --- */
         header {
             background: linear-gradient(135deg, #192a56, #273c75);
-            padding: 15px 20px;
-            text-align: center;
+            padding: 15px 20px; text-align: center;
             border-bottom: 4px solid var(--primary);
             position: sticky; top: 0; z-index: 100;
             box-shadow: 0 4px 10px rgba(0,0,0,0.3);
@@ -62,8 +60,7 @@
             width: 80px; height: 80px; object-fit: contain;
             background: rgba(255,255,255,0.1); border-radius: 50%;
             margin-bottom: 10px; border: 2px solid var(--light);
-            display: none; 
-            transition: transform 0.3s;
+            display: none; transition: transform 0.3s;
         }
 
         header h1 { 
@@ -82,16 +79,42 @@
 
         header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.8rem; transition: all 0.3s; }
 
-        .admin-toggle {
-            position: absolute; top: 15px; right: 15px;
-            background: none; border: none; color: #aaa; cursor: pointer; font-size: 1.2rem;
+        /* AUTH BUTTONS & DROPDOWN */
+        .auth-container { position: absolute; top: 15px; right: 15px; }
+        
+        .auth-toggle {
+            background: rgba(0,0,0,0.3); border: 1px solid #777; 
+            color: white; cursor: pointer; font-size: 0.8rem;
+            padding: 5px 12px; border-radius: 20px;
+            display: flex; align-items: center; gap: 8px;
+            transition: 0.3s;
         }
-        .admin-active { color: var(--gold); }
-        .admin-badge {
-            display: none; background: var(--danger); color: white; 
-            padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; 
-            margin-top: 5px; font-weight: bold; text-transform: uppercase;
+        .auth-toggle:hover { background: rgba(255,255,255,0.1); border-color: var(--primary); }
+        
+        .user-avatar-mini {
+            width: 24px; height: 24px; border-radius: 50%; background: #ccc; object-fit: cover; border: 1px solid white;
         }
+
+        .dropdown-menu {
+            display: none; position: absolute; top: 40px; right: 0;
+            background: var(--card-bg); border: 1px solid #555; border-radius: 8px;
+            width: 240px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 200; overflow: hidden; animation: fadeIn 0.2s;
+        }
+        .dropdown-menu.show { display: block; }
+        .dropdown-item {
+            display: block; width: 100%; padding: 12px 15px;
+            text-align: left; background: none; border: none;
+            color: #ddd; cursor: pointer; font-size: 0.9rem;
+            border-bottom: 1px solid #444; transition: 0.2s;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .dropdown-item:last-child { border-bottom: none; }
+        .dropdown-item:hover { background: rgba(255,255,255,0.05); color: white; padding-left: 20px; }
+        .dropdown-item.danger { color: var(--danger); }
+        .dropdown-item.danger:hover { background: rgba(255, 0, 0, 0.1); }
+        .dropdown-item.gold { color: var(--gold); }
+        .dropdown-item.active-admin { background: rgba(255, 165, 2, 0.1); color: var(--gold); }
 
         .container { max-width: 800px; margin: 0 auto; padding: 20px; }
 
@@ -155,15 +178,15 @@
         }
         .filter-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
-        /* Admin Buttons */
+        /* Admin Buttons (HANYA MUNCUL JIKA MODE DEWA AKTIF) */
         .admin-controls { display: none; position: absolute; bottom: 10px; right: 10px; z-index: 10; }
         .show-admin { display: block !important; }
         .btn-mini-action { width: 30px; height: 30px; border-radius: 5px; border:none; color:white; cursor: pointer; margin-left: 5px; }
-        .btn-delete-profile { display: none; background: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; position: absolute; top: 15px; left: 15px; }
 
         /* --- PROFILE --- */
         .profile-header { text-align: center; background: var(--card-bg); padding: 30px; border-radius: 15px; margin-bottom: 20px; position: relative; }
-        .btn-edit-profile { position: absolute; top: 15px; right: 15px; background: transparent; border: 1px solid #777; color: #ddd; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        .btn-edit-profile { position: absolute; top: 15px; right: 15px; background: transparent; border: 1px solid #777; color: #ddd; padding: 5px 10px; border-radius: 5px; cursor: pointer; display: none; }
+        
         .profile-pic { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 4px solid var(--primary); margin-bottom: 15px; background: #555; }
         .tag { background: #485460; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; color: white; display: inline-block; margin: 3px; }
         .social-badge { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; padding: 6px 15px; border-radius: 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; transition: transform 0.2s; }
@@ -176,7 +199,7 @@
         .gallery-img { width: 100%; height: 100%; object-fit: cover; cursor: pointer; transition: transform 0.2s; }
         .gallery-img:hover { transform: scale(1.1); }
         .btn-del-photo { position: absolute; top: 0; right: 0; background: rgba(255,0,0,0.8); color: white; border: none; width: 25px; height: 25px; cursor: pointer; z-index: 10; display: none; }
-        .btn-add-photo { width: 100%; background: #3d4655; color: #aaa; border: 2px dashed #57606f; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
+        .btn-add-photo { width: 100%; background: #3d4655; color: #aaa; border: 2px dashed #57606f; padding: 10px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; display: none; align-items: center; justify-content: center; gap: 8px; transition: 0.3s; }
         .btn-add-photo:hover { background: #485460; color: white; border-color: var(--accent-blue); }
 
         /* --- SEARCH BAR --- */
@@ -189,6 +212,11 @@
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 300; justify-content: center; align-items: center; }
         .modal-content { background: var(--secondary); padding: 25px; border-radius: 15px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto; position: relative; }
         
+        /* AUTH TABS (LOGIN/REGISTER) */
+        .auth-tabs { display: flex; margin-bottom: 15px; border-bottom: 1px solid #555; }
+        .auth-tab-btn { flex: 1; padding: 10px; background: none; border: none; color: #aaa; cursor: pointer; font-weight: bold; border-bottom: 2px solid transparent; }
+        .auth-tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
         /* --- CHAT BOT UI --- */
         #modalBot .modal-content { max-width: 800px; }
         .bot-layout { display: flex; gap: 15px; height: 60vh; min-height: 400px; max-height: 600px; margin-top: 10px; }
@@ -243,19 +271,20 @@
 <body>
 
     <header id="mainHeader">
-        <button class="admin-toggle" onclick="toggleAdminMode()">
-            <i class="fas fa-lock" id="iconLock"></i>
-        </button>
+        <div class="auth-container">
+            <button id="authBtn" class="auth-toggle" onclick="toggleUserMenu()">
+                <i class="fas fa-sign-in-alt"></i> Login
+            </button>
+            <div id="userDropdown" class="dropdown-menu">
+                </div>
+        </div>
         
         <img src="" id="teamLogo" class="team-logo">
         
         <h1 id="headerTitle">Akang Cosplay</h1>
         <p id="headerEst">EST. 2024</p>
-        <div id="adminBadge" class="admin-badge">Admin Mode Active</div>
         
-        <button id="btnGlobalSettings" class="btn-settings" onclick="openModal('modalSettings')">
-            <i class="fas fa-cog"></i> Pengaturan Admin
-        </button>
+        <div id="adminBadge" class="admin-badge" style="display:none; margin-top:5px; background:var(--gold); color:black; font-weight:bold; padding:2px 8px; border-radius:10px;">SUPER ADMIN ACTIVE</div>
     </header>
 
     <div class="container">
@@ -384,10 +413,42 @@
     <div class="fab-container">
         <div id="fabMenu" class="fab-menu">
             <button onclick="toggleFabMenu(); openBotModal()" style="border-color: var(--accent-blue);">💬 Tanya Akang</button>
-            <button id="fabBtnMember" class="admin-only" style="display: none;" onclick="toggleFabMenu(); openModal('modalMember')">👤 Member Baru</button>
             <button id="fabBtnWin" class="admin-only" style="display: none;" onclick="toggleFabMenu(); openModalWin()">🏆 Input Menang</button>
         </div>
         <button class="btn-fab" onclick="toggleFabMenu()" title="Menu"><i class="fas fa-plus"></i></button>
+    </div>
+
+    <div id="modalAuth" class="modal">
+        <div class="modal-content">
+            <div class="auth-tabs">
+                <button class="auth-tab-btn active" onclick="switchAuthTab('login')">Login</button>
+                <button class="auth-tab-btn" onclick="switchAuthTab('register')">Daftar Member</button>
+            </div>
+
+            <div id="formLogin">
+                <label>Email</label><input type="email" id="loginEmail">
+                <label>Password</label><input type="password" id="loginPass">
+                <button class="btn-submit" onclick="login()">Masuk</button>
+                <p id="loginError" style="color:var(--danger); font-size:0.9rem; margin-top:10px;"></p>
+            </div>
+
+            <div id="formRegister" class="hidden">
+                <p style="color:#aaa; font-size:0.9rem; margin-bottom:15px;">Buat akun member baru untuk mulai mengisi portofolio coslpay-mu!</p>
+                <label>Email</label><input type="email" id="regEmail">
+                <label>Password (Min 6 Karakter)</label><input type="password" id="regPass">
+                
+                <hr style="border-color:#444; margin: 15px 0;">
+                
+                <label>Nama Panggung / Cosplayer</label><input type="text" id="regName">
+                <label>Bio Singkat</label><textarea id="regBio" rows="2"></textarea>
+                <label>Link Instagram</label><input type="text" id="regIg" placeholder="@username">
+                
+                <button class="btn-submit" style="background:var(--green);" onclick="registerUser()">Daftar & Buat Profil</button>
+                <p id="regError" style="color:var(--danger); font-size:0.9rem; margin-top:10px;"></p>
+            </div>
+
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAuth')">Batal</button>
+        </div>
     </div>
 
     <div id="modalAddGame" class="modal">
@@ -402,36 +463,68 @@
         </div>
     </div>
 
-    <div id="modalBot" class="modal">
-        <div class="modal-content" style="padding: 15px; display: flex; flex-direction: column;">
-            <h3 style="margin-top:0; margin-bottom: 5px; color:var(--accent-blue); display:flex; justify-content:space-between; flex-shrink: 0;">
-                <span>🤖 Akang Bot</span>
-                <i class="fas fa-times" style="cursor:pointer; color:#777;" onclick="closeModal('modalBot')"></i>
-            </h3>
-            <div class="bot-layout">
-                <div class="bot-menu-section" id="chatOptions">
-                    <div class="bot-menu-title">Daftar Topik:</div>
-                </div>
-                <div class="bot-chat-section">
-                    <div id="chatArea" class="chat-box"></div>
-                    <div class="chat-input-area">
-                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan..." onkeypress="handleChatEnter(event)">
-                        <button onclick="sendCustomMessage()"><i class="fas fa-paper-plane"></i></button>
-                    </div>
-                </div>
+    <div id="modalEdit" class="modal">
+        <div class="modal-content">
+            <h3>✏️ Edit Profil Saya</h3>
+            <input type="hidden" id="editId">
+            <label>Nama</label><input type="text" id="editName">
+            <label>Bio</label><textarea id="editBio" rows="2"></textarea>
+            <label>Link / Username Instagram</label><input type="text" id="editIg">
+            <label>Foto Baru</label><input type="file" id="editPhoto" accept="image/*">
+            <label>Tambah Kostum (Repertoire)</label>
+            <div style="display:flex; gap:5px;">
+                <input type="text" id="repInput" placeholder="Nama Karakter...">
+                <button onclick="addRepertoireTag()" style="width:50px; background:var(--accent-blue); border:none; color:white; border-radius:5px;">+</button>
             </div>
+            <div id="editRepList" style="margin-top:10px;"></div>
+            <button class="btn-submit" onclick="saveEditProfile()">Update</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEdit')">Batal</button>
         </div>
     </div>
 
-    <div id="modalMember" class="modal">
+    <div id="modalSettings" class="modal">
         <div class="modal-content">
-            <h3>👤 Member Baru</h3>
-            <label>Nama Panggung</label><input type="text" id="regName">
-            <label>Bio</label><textarea id="regBio" rows="2"></textarea>
-            <label>Link / Username Instagram</label><input type="text" id="regIg" placeholder="Cth: https://instagram.com/... atau @nama">
-            <label>Foto Profil</label><input type="file" id="regPhoto" accept="image/*">
-            <button class="btn-submit" onclick="submitMember()">Simpan</button>
-            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalMember')">Batal</button>
+            <h3>⚙️ Settings</h3>
+            
+            <div style="background: #2c3e50; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #3498db;">
+                <h4 style="margin-top:0; color:#3498db;">🛠️ Migrasi Data (Darurat)</h4>
+                <p style="font-size:0.8rem; color:#ccc;">Klik tombol di bawah untuk mengambil data profil lama ke akun login ini.</p>
+                <div id="migrationList"></div>
+            </div>
+            
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalSettings')">Tutup</button>
+        </div>
+    </div>
+
+    <div id="modalSuperAdmin" class="modal">
+        <div class="modal-content">
+            <h3 style="color:var(--gold);"><i class="fas fa-lock"></i> Mode Dewa (Super Dashboard)</h3>
+            <p style="font-size:0.8rem; color:#888;">Hanya akses jika darurat.</p>
+            
+            <div style="margin-bottom:20px; border-bottom:1px solid #555; padding-bottom:15px;">
+                 <label style="color:var(--accent-blue); font-size:1.1rem;"><i class="fas fa-download"></i> Backup Data</label>
+                 <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px;">Download semua data member & katalog game ke JSON.</p>
+                 <button class="btn-backup" id="btnDownloadBackup" onclick="downloadBackupData()">⬇️ Download Backup Data</button>
+            </div>
+
+            <label>Ganti Logo Website (Default Cosplay)</label>
+            <input type="file" id="settingLogo" accept="image/*">
+            <button onclick="saveLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Default</button>
+            
+            <label style="color: var(--accent-blue)">Ganti Logo "Akang Gamers"</label>
+            <input type="file" id="settingGamersLogo" accept="image/*">
+            <button onclick="saveGamersLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Gamers</button>
+
+            <div style="background: rgba(230, 126, 34, 0.1); border: 1px solid #e67e22; padding: 15px; border-radius: 8px; margin-top: 20px;">
+                <label style="color:var(--gold); font-weight:bold; margin-top:0; display:block;">🔥 Migrasi / Restore Data</label>
+                <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px; margin-bottom: 10px;">Upload file <b>.json</b> hasil backup untuk mengembalikan data.</p>
+                <input type="file" id="restoreFile" accept=".json" style="margin-bottom: 10px;">
+                <button class="btn-restore" id="btnRestoreAction" onclick="restoreToFirebase()">⬆️ Upload JSON ke Database</button>
+            </div>
+            
+            <button id="btnInjectIan" class="btn-inject" onclick="injectIanData()">⚡ Inject Data Ian (Auto)</button>
+
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalSuperAdmin')">Tutup</button>
         </div>
     </div>
 
@@ -494,53 +587,24 @@
         </div>
     </div>
 
-    <div id="modalEdit" class="modal">
-        <div class="modal-content">
-            <h3>✏️ Edit Profil</h3>
-            <input type="hidden" id="editId">
-            <label>Nama</label><input type="text" id="editName">
-            <label>Bio</label><textarea id="editBio" rows="2"></textarea>
-            <label>Link / Username Instagram</label><input type="text" id="editIg">
-            <label>Foto Baru</label><input type="file" id="editPhoto" accept="image/*">
-            <label>Tambah Kostum (Repertoire)</label>
-            <div style="display:flex; gap:5px;">
-                <input type="text" id="repInput" placeholder="Nama Karakter...">
-                <button onclick="addRepertoireTag()" style="width:50px; background:var(--accent-blue); border:none; color:white; border-radius:5px;">+</button>
+    <div id="modalBot" class="modal">
+        <div class="modal-content" style="padding: 15px; display: flex; flex-direction: column;">
+            <h3 style="margin-top:0; margin-bottom: 5px; color:var(--accent-blue); display:flex; justify-content:space-between; flex-shrink: 0;">
+                <span>🤖 Akang Bot</span>
+                <i class="fas fa-times" style="cursor:pointer; color:#777;" onclick="closeModal('modalBot')"></i>
+            </h3>
+            <div class="bot-layout">
+                <div class="bot-menu-section" id="chatOptions">
+                    <div class="bot-menu-title">Daftar Topik:</div>
+                </div>
+                <div class="bot-chat-section">
+                    <div id="chatArea" class="chat-box"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chatInput" placeholder="Ketik pertanyaan..." onkeypress="handleChatEnter(event)">
+                        <button onclick="sendCustomMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
             </div>
-            <div id="editRepList" style="margin-top:10px;"></div>
-            <button class="btn-submit" onclick="saveEditProfile()">Update</button>
-            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEdit')">Batal</button>
-        </div>
-    </div>
-
-    <div id="modalSettings" class="modal">
-        <div class="modal-content">
-            <h3>⚙️ Admin Settings</h3>
-            
-            <div style="margin-bottom:20px; border-bottom:1px solid #555; padding-bottom:15px;">
-                 <label style="color:var(--accent-blue); font-size:1.1rem;"><i class="fas fa-download"></i> Backup Data (Anti-Hack)</label>
-                 <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px;">Download semua data member & katalog game ke HP/Laptop Anda secara berkala.</p>
-                 <button class="btn-backup" id="btnDownloadBackup" onclick="downloadBackupData()">⬇️ Download Backup Data (JSON)</button>
-            </div>
-
-            <label>Ganti Logo Website (Default Cosplay)</label>
-            <input type="file" id="settingLogo" accept="image/*">
-            <button onclick="saveLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Default</button>
-            
-            <label style="color: var(--accent-blue)">Ganti Logo "Akang Gamers"</label>
-            <input type="file" id="settingGamersLogo" accept="image/*">
-            <button onclick="saveGamersLogo()" style="background:#555; color:white; border:none; padding:8px; width:100%; margin-bottom:15px; border-radius: 5px;">Simpan Logo Gamers</button>
-
-            <div style="background: rgba(230, 126, 34, 0.1); border: 1px solid #e67e22; padding: 15px; border-radius: 8px; margin-top: 20px;">
-                <label style="color:var(--gold); font-weight:bold; margin-top:0; display:block;">🔥 Migrasi / Restore Data</label>
-                <p style="font-size: 0.8rem; color: #ccc; margin-top: 5px; margin-bottom: 10px;">Upload file <b>.json</b> hasil backup untuk mengembalikan data.</p>
-                <input type="file" id="restoreFile" accept=".json" style="margin-bottom: 10px;">
-                <button class="btn-restore" id="btnRestoreAction" onclick="restoreToFirebase()">⬆️ Upload JSON ke Database</button>
-            </div>
-            
-            <button id="btnInjectIan" class="btn-inject" onclick="injectIanData()">⚡ Inject Data Kemenangan Ian (Auto)</button>
-
-            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalSettings')">Tutup</button>
         </div>
     </div>
 
@@ -551,7 +615,7 @@
 
         // --- 1. INISIALISASI FIREBASE ---
         const firebaseConfig = {
-            apiKey: "AIzaSyDTzkh9BbSf1qpCiCDru3JibPi-G8nokfQ",
+            apiKey: "AIzaSyDTzkh9BbSf1qpCiCDru3JibPi-G8nokfQ", 
             authDomain: "website-akang-cosplay.firebaseapp.com",
             projectId: "website-akang-cosplay",
             storageBucket: "website-akang-cosplay.firebasestorage.app",
@@ -561,18 +625,23 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
 
         // --- DATA & STATE ---
         let members = [];
         let games = []; 
         let currentTempRepertoire = [];
-        let isAdmin = false; 
         
+        let isRein = false; // Menandai apakah user adalah Rein
+        let isAdmin = false; // Menandai apakah Mode Dewa sedang AKTIF
+        let currentUser = null; 
+        
+        // HASH PASSWORD ADMIN (Default: admin123)
+        // Kalau mau ganti password, ganti hash ini dengan SHA-256 password baru
         const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
+        
         let currentHistoryFilter = 'all'; 
         let lastTopic = ""; 
-
-        // --- STATE VIRTUAL SCROLL ---
         let displayedItemsCount = 0;
         const itemsBatchSize = 10;
         let filteredGlobalHistoryData = [];
@@ -585,6 +654,18 @@
         }
 
         // --- 2. LISTENER REAL-TIME FIREBASE ---
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            // Cek apakah ini Rein
+            if(currentUser && currentUser.email === "reinkogeki@gmail.com") {
+                isRein = true;
+            } else {
+                isRein = false;
+                isAdmin = false; // Auto matikan admin jika bukan Rein
+            }
+            updateAuthUI();
+        });
+
         db.collection("members").onSnapshot((snapshot) => {
             members = [];
             snapshot.forEach((doc) => { members.push(doc.data()); });
@@ -597,7 +678,6 @@
             if(document.getElementById('view-gamers').classList.contains('active')) renderGames();
         });
 
-        // Listener Settings
         db.collection("settings").doc("global").onSnapshot((doc) => {
             if(doc.exists && doc.data().logo) {
                 defaultLogoUrl = doc.data().logo;
@@ -617,118 +697,192 @@
             }
         });
 
-        // --- BOT FAQ DATA ---
-        const botFaqData = [
-            { q: "Apa itu Akang Cosplay?", a: "Akang Cosplay adalah sebuah tim cosplay yang beranggotakan KanekIan/Ian, Nabilla, dan Rein/Azrael. Kami resmi berdiri sejak 14 Juni 2024! ✨" },
-            { q: "Apa itu Akang Gamers? / Live Stream", a: "🎮 <b>Akang Gamers</b> adalah divisi khusus dari Akang Cosplay! Di sini, <b>Rein</b> dan <b>Nabilla</b> rutin melakukan live streaming, main game bareng, dan ngobrol santai dengan para viewers.<br><br>Yuk mampir dan follow kami di:<br>- YT: <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a><br>- IG: <a href='https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z' target='_blank' class='bot-link'>@akanggamersofc</a><br>- TikTok: <a href='https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y' target='_blank' class='bot-link'>@realaffiliate1372</a>" },
-            { q: "Boleh minta Sosmed Akang Cosplay & Membernya?", a: "Tentu saja! Silakan kepoin dan follow media sosial kami ya:<br><br>✨ <b>Akang Cosplay:</b><br>- IG: <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br>- TikTok: <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a><br>- YouTube: <a href='https://youtube.com/@akangcosplay?si=oEZArK_Fnyq5ObUt' target='_blank' class='bot-link'>Akang Cosplay</a><br><br>👥 <b>Instagram Member:</b><br>👉 KanekIan/Ian: <a href='https://www.instagram.com/ian07_/' target='_blank' class='bot-link'>@ian07_</a><br>👉 Rein/Azrael: <a href='https://www.instagram.com/reincoser_/' target='_blank' class='bot-link'>@reincoser_</a><br>👉 Nabilla: <a href='https://www.instagram.com/nabillacoser/' target='_blank' class='bot-link'>@nabillacoser</a>" },
-            { q: "Gimana cara join jadi member?", a: "Buat kamu yang ingin bergabung, kami punya program 'Akang Trainee'! Di sini kita bakal seru-seruan bareng, latihan performa sesuai karakter, dan saling update event terbaru. Kalau tertarik, langsung aja DM IG kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 📩" },
-            { q: "Terima jasa sewa kostum / makeup?", a: "Wah, untuk saat ini kami belum menyediakan jasa rental kostum, pembuat properti (maker), ataupun makeup cosplay. Tapi tenang aja, kami sedang mempertimbangkan untuk membuka jasa tersebut di masa mendatang. Ditunggu terus ya update dari kami! 🧵🎨" },
-            { q: "Bisa kerja sama (Juri/Guest Star)?", a: "Tentu saja! Akang Cosplay sangat terbuka dan antusias dengan berbagai tawaran kerja sama, baik sebagai Juri, Guest Star, maupun Talent. Yuk, diskusikan konsep kerjasamanya melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 🤝🎤" }
-        ];
-
-        // --- AUTO INJECT DATA IAN ---
-        const ianDataRaw = [
-            // 2023
-            { d:"2023-01-29", r:"Best", t:"Top 5", c:"Coswalk", e:"Matana Week Festival", l:"Tangerang" },
-            { d:"2023-04-08", r:"Best", t:"Top 10", c:"Coswalk", e:"Bukber Party Anico.id", l:"Tangerang" },
-            { d:"2023-07-30", r:"Best", t:"Top 10", c:"Coswalk", e:"Parade Musik Kuliner Anico.id", l:"Tangerang" },
-            // 2024
-            { d:"2024-06-21", r:"Best", t:"Top 10", c:"Coswalk", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
-            { d:"2024-06-21", r:"Best", t:"Best Costume", c:"Cosplay Competition", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
-            { d:"2024-06-22", r:"2", t:null, c:"Coswalk", e:"Kaihin Oboida Japan Fest", l:"Tangerang" },
-            { d:"2024-07-02", r:"Best", t:"Top 10", c:"Coswalk", e:"Soekarno Hatta Airport Anico.id", l:"Jakarta" },
-            { d:"2024-07-14", r:"Best", t:"Top 5", c:"Coswalk", e:"DransFestival 91 District", l:"Tangerang" },
-            { d:"2024-07-21", r:"3", t:null, c:"Coswalk", e:"CBD Ciledug Costume Festival", l:"Tangerang" },
-            { d:"2024-07-29", r:"Best", t:"Top 5", c:"Coswalk", e:"New Generation Fest Plaza Festival", l:"Jakarta" },
-            { d:"2024-08-03", r:"Best", t:"Favourite", c:"Coswalk", e:"MNP Fest", l:"Tangerang" },
-            { d:"2024-08-05", r:"3", t:null, c:"Coswalk", e:"Tomochi Hobbies Week 2.0", l:"Bekasi" },
-            { d:"2024-08-24", r:"Best", t:"Best Costume", c:"Cosplay Competition", e:"Holi Yeay 2.0 Hotel Episode", l:"Tangerang" },
-            { d:"2024-08-26", r:"1", t:null, c:"Cosplay Competition", e:"One District Cosplay Party Anico.id", l:"Jakarta" },
-            { d:"2024-09-01", r:"2", t:null, c:"Coswalk", e:"New Generation Festival Raya", l:"Jakarta" },
-            { d:"2024-09-09", r:"Best", t:"Best Costume", c:"Coswalk", e:"Broadway Revue Festival", l:"Tangerang" },
-            { d:"2024-09-15", r:"Best", t:"Best Male", c:"Coswalk", e:"Cosproject Fandom Summit", l:"Jakarta" },
-            { d:"2024-09-23", r:"Best", t:"Best Male", c:"Coswalk", e:"Depok Go Go!", l:"Depok" },
-            { d:"2024-09-30", r:"Best", t:"Best Armor", c:"Coswalk", e:"Tecno Game Fest", l:"Jakarta" },
-            { d:"2024-10-02", r:"Best", t:"Top 10", c:"Coswalk", e:"Amazing September Matsuri", l:"Tangerang" },
-            { d:"2024-10-02", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Amazing September Matsuri", l:"Tangerang" },
-            { d:"2024-10-07", r:"Best", t:"Best Game", c:"Coswalk", e:"AEONIME VOL. 3", l:"Jakarta" },
-            { d:"2024-10-08", r:"3", t:null, c:"Coswalk", e:"JCAFEST 8 Natsu Matsuri", l:"Tangerang" },
-            { d:"2024-10-15", r:"Best", t:"Top 10", c:"Coswalk", e:"Halloween Cosplay Party Anico.id", l:"Jakarta" },
-            { d:"2024-10-28", r:"1", t:null, c:"Coswalk", e:"Wonderful Cosplay Party 2024", l:"Tangerang" },
-            { d:"2024-11-04", r:"Best", t:"Top 5", c:"Coswalk", e:"Spookyland Matsuri SMS", l:"Tangerang" },
-            { d:"2024-12-16", r:"3", t:null, c:"Cosplay Competition", e:"BTN Property Expo", l:"Jakarta" },
-            { d:"2024-12-29", r:"3", t:null, c:"Coswalk", e:"Nishikai J-Pop Showcase 7", l:"Cilegon" },
-            // 2025
-            { d:"2025-01-29", r:"Best", t:"Best Action", c:"Coswalk", e:"Avani Breeze Matsuri", l:"Tangerang" },
-            { d:"2025-03-19", r:"Best", t:"Top 5", c:"Coswalk", e:"Wibusata", l:"Bekasi" },
-            { d:"2025-03-20", r:"Best", t:"1st Favorite", c:"Coswalk", e:"Mugen no Uta Festival", l:"Jatinegara" },
-            { d:"2025-03-27", r:"Best", t:"Best Male", c:"Coswalk", e:"NewGen Anicos", l:"Cikarang" },
-            { d:"2025-04-08", r:"Best", t:"Best Perform", c:"Coswalk", e:"Museum Mandiri Festival", l:"Jakarta" },
-            { d:"2025-04-15", r:"2", t:null, c:"Coswalk", e:"Aru No Matsuri 8", l:"Sukabumi" },
-            { d:"2025-04-23", r:"1", t:null, c:"Cosplay Competition", e:"Anico Anime Cosplay VOL. 9", l:"Jakarta" },
-            { d:"2025-05-17", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Midori Fest 4", l:"Jakarta" },
-            { d:"2025-05-19", r:"Best", t:"Favorite", c:"Coswalk", e:"NewGen Cos Sen", l:"Jakarta" },
-            { d:"2025-05-26", r:"1", t:null, c:"Coswalk", e:"Japan Matsuri Anico.id", l:"Jakarta" },
-            { d:"2025-06-02", r:"2", t:null, c:"Cosplay Competition", e:"Qsquare Pop Culture", l:"Bogor" },
-            { d:"2025-06-08", r:"Best", t:"Best Perform", c:"Cosplay Competition", e:"Anime Festival Asia 2025", l:"Jakarta" },
-            { d:"2025-06-14", r:"Best", t:"Best Perform", c:"Coswalk", e:"Erafone & More Cosplay", l:"Jakarta" },
-            { d:"2025-06-20", r:"1", t:null, c:"Cosplay Competition", e:"Iban Commfest VOL. 2", l:"Bandar Lampung" },
-            { d:"2025-07-05", r:"3", t:null, c:"Cosplay Competition", e:"Yume No Mitai Festival", l:"Jakarta" },
-            { d:"2025-07-06", r:"1", t:null, c:"Coswalk", e:"Yume No Mitai Festival", l:"Jakarta" },
-            { d:"2025-07-12", r:"Best", t:"Best Perform", c:"Coswalk", e:"Purple Fest Extra", l:"Bekasi" },
-            { d:"2025-07-19", r:"2", t:null, c:"Coswalk", e:"Shinzoku Weebfest", l:"Cilegon" }
-        ];
-
-        async function injectIanData() {
-            const btn = document.getElementById('btnInjectIan');
-            const ian = members.find(m => m.name.toLowerCase().includes("ian") || m.name.toLowerCase().includes("kanekian"));
+        // --- AUTH & DROPDOWN UI ---
+        function updateAuthUI() {
+            const btn = document.getElementById('authBtn');
+            const dropdown = document.getElementById('userDropdown');
+            const adminBadge = document.getElementById('adminBadge');
             
-            if(!ian) {
-                alert("Member dengan nama 'Ian' atau 'KanekIan' tidak ditemukan! Pastikan nama member sudah dibuat.");
-                return;
+            // Atur Badge Admin
+            if (isAdmin) {
+                adminBadge.style.display = 'block';
+                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'block');
+            } else {
+                adminBadge.style.display = 'none';
+                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none');
             }
 
-            if(!confirm(`Ditemukan member: ${ian.name}.\nYakin ingin memasukkan ${ianDataRaw.length} data kemenangan secara otomatis?`)) return;
-
-            btn.innerText = "⏳ Memproses...";
-            btn.style.background = "#95a5a6";
-
-            // Proses Data
-            if(!ian.history) ian.history = [];
-            
-            ianDataRaw.forEach(item => {
-                // Cek duplikasi (sederhana) agar tidak double kalau diklik 2x
-                const isExist = ian.history.some(h => h.event === item.e && h.date.startsWith(item.d));
-                if(!isExist) {
-                    ian.history.unshift({
-                        id: Date.now() + Math.random().toString(),
-                        event: item.e,
-                        category: item.c,
-                        char: "-", // Default karakter strip karena data tidak ada
-                        rank: item.r,
-                        judges: "-",
-                        bestTitle: item.t,
-                        proof: null,
-                        date: new Date(item.d).toISOString()
-                    });
+            if (currentUser) {
+                // Tampilan jika Login
+                const myProfile = members.find(m => m.id === currentUser.uid);
+                const photoUrl = myProfile && myProfile.photo ? myProfile.photo : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+                const safeName = escapeHtml(myProfile ? myProfile.name : 'Member');
+                
+                btn.innerHTML = `<img src="${photoUrl}" class="user-avatar-mini"> ${safeName} <i class="fas fa-caret-down"></i>`;
+                btn.onclick = toggleUserMenu; 
+                
+                // ISI DROPDOWN
+                let adminMenuHTML = "";
+                
+                if (isRein) {
+                    if (isAdmin) {
+                        // Jika Mode Dewa AKTIF
+                        adminMenuHTML = `
+                            <button class="dropdown-item active-admin" onclick="toggleAdminMode()"><i class="fas fa-toggle-on"></i> Matikan Mode Dewa</button>
+                            <button class="dropdown-item gold" onclick="openModal('modalSuperAdmin')"><i class="fas fa-cogs"></i> Super Dashboard</button>
+                        `;
+                    } else {
+                        // Jika Mode Dewa MATI
+                        adminMenuHTML = `
+                            <button class="dropdown-item danger" onclick="toggleAdminMode()"><i class="fas fa-toggle-off"></i> Aktifkan Mode Dewa</button>
+                        `;
+                    }
                 }
+
+                dropdown.innerHTML = `
+                    <button class="dropdown-item" onclick="openProfile('${currentUser.uid}')"><i class="fas fa-user"></i> Profil Saya</button>
+                    <button class="dropdown-item" onclick="openModal('modalSettings')"><i class="fas fa-exchange-alt"></i> Settings (Migrasi)</button>
+                    ${adminMenuHTML}
+                    <button class="dropdown-item" onclick="logout()" style="border-top:1px solid #555;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                `;
+            } else {
+                // Tampilan jika Belum Login
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`;
+                btn.onclick = openAuthModal;
+                dropdown.innerHTML = ""; 
+                isAdmin = false;
+            }
+            renderAll();
+        }
+
+        async function toggleAdminMode() {
+            // Tutup dropdown
+            document.getElementById('userDropdown').classList.remove('show');
+
+            if (isAdmin) {
+                // MATIKAN
+                isAdmin = false;
+                alert("Mode Dewa Dinonaktifkan. Tampilan kembali bersih.");
+                updateAuthUI();
+            } else {
+                // NYALAKAN (Butuh Password)
+                let pass = prompt("Masukkan Password Mode Dewa:");
+                if(pass) {
+                    const hash = await sha256(pass);
+                    if(hash === ADMIN_HASH) {
+                        isAdmin = true;
+                        alert("Mode Dewa AKTIF! Hati-hati, Anda punya akses penuh.");
+                        updateAuthUI();
+                    } else {
+                        alert("Password Salah!");
+                    }
+                }
+            }
+        }
+
+        function toggleUserMenu() {
+            const menu = document.getElementById('userDropdown');
+            menu.classList.toggle('show');
+        }
+
+        // Tutup dropdown kalau klik di luar
+        window.addEventListener('click', function(e) {
+            const btn = document.getElementById('authBtn');
+            const menu = document.getElementById('userDropdown');
+            if (!btn.contains(e.target) && !menu.contains(e.target)) {
+                menu.classList.remove('show');
+            }
+        });
+
+        function openAuthModal() {
+            document.getElementById('modalAuth').style.display = 'flex';
+            switchAuthTab('login');
+            document.getElementById('loginError').innerText = "";
+            document.getElementById('regError').innerText = "";
+        }
+
+        function switchAuthTab(tab) {
+            document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active'));
+            if(tab === 'login') {
+                document.querySelector('.auth-tab-btn:first-child').classList.add('active');
+                document.getElementById('formLogin').classList.remove('hidden');
+                document.getElementById('formRegister').classList.add('hidden');
+            } else {
+                document.querySelector('.auth-tab-btn:last-child').classList.add('active');
+                document.getElementById('formLogin').classList.add('hidden');
+                document.getElementById('formRegister').classList.remove('hidden');
+            }
+        }
+
+        function login() {
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPass').value;
+            const err = document.getElementById('loginError');
+            if(!email || !pass) { err.innerText = "Email dan Password wajib diisi"; return; }
+            err.innerText = "Proses masuk...";
+            auth.signInWithEmailAndPassword(email, pass)
+                .then(() => { closeModal('modalAuth'); document.getElementById('loginEmail').value = ""; document.getElementById('loginPass').value = ""; })
+                .catch((error) => { err.innerText = "Gagal Login: " + error.message; });
+        }
+
+        function logout() {
+            auth.signOut().then(() => { alert("Berhasil Logout"); switchView('leaderboard'); });
+        }
+
+        function registerUser() {
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPass').value;
+            const name = document.getElementById('regName').value;
+            const bio = document.getElementById('regBio').value;
+            const ig = document.getElementById('regIg').value;
+            const err = document.getElementById('regError');
+
+            if(!email || !pass || !name) { err.innerText = "Wajib diisi!"; return; }
+            if(pass.length < 6) { err.innerText = "Password minimal 6 karakter"; return; }
+            err.innerText = "Mendaftarkan akun...";
+
+            auth.createUserWithEmailAndPassword(email, pass)
+                .then((userCredential) => {
+                    const user = userCredential.user;
+                    const newMember = { id: user.uid, name: name, bio: bio, ig: ig, photo: null, history: [], repertoire: [], gallery: [] };
+                    db.collection("members").doc(user.uid).set(newMember)
+                        .then(() => { alert("Berhasil!"); closeModal('modalAuth'); document.getElementById('regEmail').value = ""; document.getElementById('regPass').value = ""; })
+                        .catch(e => { err.innerText = "Gagal simpan profil: " + e.message; });
+                })
+                .catch((error) => { err.innerText = error.message; });
+        }
+
+        // --- FITUR MIGRASI BARU ---
+        function renderMigrationList() {
+            const container = document.getElementById('migrationList');
+            container.innerHTML = "Memuat data...";
+            const candidates = members.filter(m => currentUser && m.id !== currentUser.uid);
+            if(candidates.length === 0) { container.innerHTML = "Tidak ada profil lain yang bisa diambil."; return; }
+
+            let html = '<ul style="padding-left: 20px; margin-bottom: 0;">';
+            candidates.forEach(m => {
+                html += `<li style="margin-bottom: 10px;"><strong>${escapeHtml(m.name)}</strong> <br><small>ID: ${m.id}</small><br><small>Menang: ${m.history ? m.history.length : 0}x</small><br><button onclick="executeMigration('${m.id}')" style="background: #e67e22; border:none; color:white; padding: 5px 10px; border-radius: 5px; cursor:pointer; margin-top:5px;"><i class="fas fa-exchange-alt"></i> Ambil Data Ini</button></li>`;
             });
+            html += '</ul>';
+            container.innerHTML = html;
+        }
+
+        async function executeMigration(oldId) {
+            if(!confirm("Yakin ini profil lama Anda? Data akun login sekarang akan ditimpa!")) return;
+            const user = firebase.auth().currentUser;
+            if(!user) return alert("Anda harus login dulu!");
 
             try {
-                await db.collection("members").doc(ian.id.toString()).set(ian);
-                btn.innerText = "✅ Sukses!";
-                btn.style.background = "#2ecc71";
-                alert(`Berhasil! ${ianDataRaw.length} data kemenangan telah ditambahkan ke profil ${ian.name}.`);
-                closeModal('modalSettings');
-                // Buka profil Ian langsung
-                document.getElementById('editId').value = ian.id;
-                openProfile(ian.id);
-            } catch(e) {
-                console.error(e);
-                alert("Gagal menyimpan data. Cek koneksi.");
-                btn.innerText = "⚡ Inject Data Kemenangan Ian (Auto)";
-            }
+                const docLamaRef = db.collection('members').doc(oldId.toString());
+                const docLama = await docLamaRef.get();
+                if (!docLama.exists) return alert("Error: Profil lama tidak ditemukan.");
+                const dataLama = docLama.data();
+                const dataBaru = { ...dataLama, id: user.uid, email: user.email };
+                await db.collection('members').doc(user.uid).set(dataBaru);
+                await docLamaRef.delete();
+                alert(`SUKSES! Data ${dataLama.name} sudah pindah ke akun Anda.`);
+                location.reload(); 
+            } catch (error) { console.error("GAGAL:", error); alert("Gagal migrasi: " + error.message); }
         }
 
         // --- CORE FUNCTIONS ---
@@ -738,7 +892,7 @@
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
         }
-
+        
         function switchView(view) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
@@ -752,117 +906,62 @@
             if(view === 'gamers') {
                 document.querySelector('.nav-btn-gamers').classList.add('active'); 
                 header.classList.add('gamers-mode');
-                
                 title.innerText = "AKANG GAMERS";
                 title.classList.add('title-gamers');
                 estText.innerText = "EST. 2026";
-                
-                if(gamersLogoUrl) {
-                    logo.src = gamersLogoUrl;
-                    logo.style.display = "block";
-                } else if(defaultLogoUrl) {
-                    logo.src = defaultLogoUrl; 
-                    logo.style.display = "block";
-                }
+                if(gamersLogoUrl) { logo.src = gamersLogoUrl; logo.style.display = "block"; } else if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
                 renderGamers(); 
             } else {
                 header.classList.remove('gamers-mode');
                 title.innerText = "AKANG COSPLAY";
                 title.classList.remove('title-gamers');
                 estText.innerText = "EST. 2024";
-                
-                if(defaultLogoUrl) {
-                    logo.src = defaultLogoUrl;
-                    logo.style.display = "block";
-                }
-
+                if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
                 if(view === 'leaderboard') { document.querySelector('.nav-tabs button:nth-child(1)').classList.add('active'); renderLeaderboard(); }
-                if(view === 'history') { 
-                    document.querySelector('.nav-tabs button:nth-child(2)').classList.add('active'); 
-                    resetHistoryAndRender();
-                }
+                if(view === 'history') { document.querySelector('.nav-tabs button:nth-child(2)').classList.add('active'); resetHistoryAndRender(); }
             }
         }
 
-        // --- BACKUP & RESTORE ---
-        async function downloadBackupData() {
-            const btn = document.getElementById('btnDownloadBackup');
-            const originalText = btn.innerText;
-            btn.innerText = "⏳ Sedang mengambil data...";
-            btn.style.background = "#95a5a6";
-
-            try {
-                const membersSnap = await db.collection("members").get();
-                const membersData = [];
-                membersSnap.forEach(doc => membersData.push(doc.data()));
-
-                const gamesSnap = await db.collection("games").get();
-                const gamesData = [];
-                gamesSnap.forEach(doc => gamesData.push(doc.data()));
-
-                const fullBackup = {
-                    members: membersData,
-                    games: gamesData,
-                    timestamp: new Date().toISOString(),
-                    version: "2.0"
-                };
-
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(fullBackup));
-                const downloadAnchorNode = document.createElement('a');
-                downloadAnchorNode.setAttribute("href", dataStr);
-                downloadAnchorNode.setAttribute("download", "backup_akang_cosplay_" + Date.now() + ".json");
-                document.body.appendChild(downloadAnchorNode); 
-                downloadAnchorNode.click();
-                downloadAnchorNode.remove();
-
-                alert("Backup Berhasil Didownload! Simpan file ini baik-baik.");
-
-            } catch (error) {
-                console.error("Backup Error:", error);
-                alert("Gagal melakukan backup. Cek koneksi internet.");
-            } finally {
-                btn.innerText = originalText;
-                btn.style.background = "#3498db";
-            }
+        // --- LAIN-LAIN ---
+        async function downloadBackupData() { 
+            const backup = { members: members, games: games, version: "1.0", date: new Date().toISOString() };
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "backup_akang_cosplay_" + Date.now() + ".json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
         }
 
-        function restoreToFirebase() {
+        function restoreToFirebase() { 
             const file = document.getElementById('restoreFile').files[0];
-            if(!file) { alert("Pilih file .json terlebih dahulu!"); return; }
-            const btn = document.getElementById('btnRestoreAction');
-            btn.innerText = "⏳ Memproses Restore...";
-            btn.style.background = "#95a5a6";
+            if(!file) return alert("Pilih file JSON dulu!");
             
             const reader = new FileReader();
-            reader.onload = async function(e) {
+            reader.onload = async (e) => {
                 try {
-                    const parsedData = JSON.parse(e.target.result);
-                    let membersToRestore = [];
-                    let gamesToRestore = [];
+                    const data = JSON.parse(e.target.result);
+                    if(!data.members || !Array.isArray(data.members)) throw new Error("Format JSON salah!");
+                    
+                    if(!confirm(`Ditemukan ${data.members.length} member. Yakin ingin restore? (Data di database akan ditimpa)`)) return;
 
-                    if(Array.isArray(parsedData)) {
-                        membersToRestore = parsedData;
-                    } else if (parsedData.members) {
-                        membersToRestore = parsedData.members;
-                        if(parsedData.games) gamesToRestore = parsedData.games;
+                    // Restore Members
+                    for (const m of data.members) {
+                        await db.collection("members").doc(m.id).set(m);
+                    }
+                    
+                    // Restore Games (Optional)
+                    if(data.games && Array.isArray(data.games)) {
+                         for (const g of data.games) {
+                            await db.collection("games").doc(g.id.toString()).set(g);
+                        }
                     }
 
-                    for (const member of membersToRestore) {
-                        await db.collection("members").doc(member.id.toString()).set(member);
-                    }
-                    for (const game of gamesToRestore) {
-                        await db.collection("games").doc(game.id.toString()).set(game);
-                    }
-
-                    btn.innerText = "⬆️ Upload JSON ke Database"; btn.style.background = "#e67e22";
-                    alert(`Restore Selesai! ${membersToRestore.length} Member dan ${gamesToRestore.length} Game berhasil dipulihkan.`);
-                    closeModal('modalSettings');
-                    renderAll();
-
-                } catch(err) { 
-                    console.error(err);
-                    alert("File rusak atau format salah!"); 
-                    btn.innerText = "⬆️ Upload JSON ke Database"; btn.style.background = "#e67e22";
+                    alert("Restore Berhasil!");
+                    location.reload();
+                } catch(err) {
+                    alert("Gagal Restore: " + err.message);
                 }
             };
             reader.readAsText(file);
@@ -870,397 +969,172 @@
 
         function saveLogo() { const file = document.getElementById('settingLogo').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { db.collection("settings").doc("global").set({ logo: e.target.result }).then(() => { alert("Logo Default tersimpan!"); }); }; reader.readAsDataURL(file); } }
         function saveGamersLogo() { const file = document.getElementById('settingGamersLogo').files[0]; if(file) { const reader = new FileReader(); reader.onload = function(e) { db.collection("settings").doc("gamers").set({ logo: e.target.result }).then(() => { alert("Logo Gamers tersimpan!"); }); }; reader.readAsDataURL(file); } }
-
-        // --- GAMERS LOGIC ---
-        function renderGamers() {
-            let rein = members.find(m => m.name.toLowerCase().includes("rein"));
-            let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla"));
-            if(rein && rein.photo) document.getElementById('img-gamer-rein').src = rein.photo;
-            if(nabilla && nabilla.photo) document.getElementById('img-gamer-nabilla').src = nabilla.photo;
-            renderGames();
+        function renderGamers() { let rein = members.find(m => m.name.toLowerCase().includes("rein")); let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla")); if(rein && rein.photo) document.getElementById('img-gamer-rein').src = rein.photo; if(nabilla && nabilla.photo) document.getElementById('img-gamer-nabilla').src = nabilla.photo; renderGames(); }
+        function renderGames() { 
+            const container = document.getElementById('game-catalog-list'); container.innerHTML = ""; 
+            if(games.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.9em;'>Belum ada game yang dimainkan.</p>"; } 
+            
+            games.forEach(g => { 
+                // TOMBOL HAPUS HANYA MUNCUL JIKA ADMIN AKTIF
+                let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>` : ``; 
+                container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}" onerror="this.src='https://via.placeholder.com/200x350?text=No+Image'"><div class="game-title">${escapeHtml(g.name)}</div></div>`; 
+            }); 
+            
+            // Re-check display (just in case)
+            if(isAdmin) document.querySelectorAll('.show-admin').forEach(b => b.style.display = 'block');
         }
-
-        function renderGames() {
-            const container = document.getElementById('game-catalog-list');
-            container.innerHTML = "";
-            if(games.length === 0) { container.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.9em;'>Belum ada game yang dimainkan.</p>"; }
-            games.forEach(g => {
-                let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>` : `<button class="btn-delete-game" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>`;
-                container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}" onerror="this.src='https://via.placeholder.com/200x350?text=No+Image'"><div class="game-title">${escapeHtml(g.name)}</div></div>`;
-            });
-            const delBtns = document.querySelectorAll('.btn-delete-game');
-            if(isAdmin) delBtns.forEach(b => b.classList.add('show-admin')); else delBtns.forEach(b => b.classList.remove('show-admin'));
-        }
-
-        function submitAddGame() {
+        function submitAddGame() { 
             const name = document.getElementById('addGameName').value;
             const file = document.getElementById('addGameImage').files[0];
-            if(!name) { alert("Nama game harus diisi!"); return; }
-            const finalizeSave = (imgBase64) => {
-                const newGame = { id: Date.now(), name: name, image: imgBase64 };
+            if(!name) return alert("Nama game wajib diisi");
+            
+            const saveGame = (imgUrl) => {
+                const newGame = { id: Date.now(), name: name, image: imgUrl || "" };
                 db.collection("games").doc(newGame.id.toString()).set(newGame).then(() => {
-                    closeModal('modalAddGame'); document.getElementById('addGameName').value = ""; document.getElementById('addGameImage').value = "";
+                    closeModal('modalAddGame');
+                    document.getElementById('addGameName').value = "";
+                    document.getElementById('addGameImage').value = "";
                 });
             };
-            if(file) {
-                const reader = new FileReader(); reader.readAsDataURL(file);
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
-                        const MAX_HEIGHT = 800; let width = img.width, height = img.height;
-                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                        canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
-                        finalizeSave(canvas.toDataURL('image/jpeg', 0.8));
-                    }
-                };
-            } else { finalizeSave("https://via.placeholder.com/200x350?text=" + encodeURIComponent(name)); }
-        }
 
+            if(file) {
+                 const reader = new FileReader();
+                 reader.onload = (e) => saveGame(e.target.result);
+                 reader.readAsDataURL(file);
+            } else {
+                saveGame(null);
+            }
+        }
         function deleteGame(id) { if(confirm("Yakin ingin menghapus game ini dari katalog?")) { db.collection("games").doc(id.toString()).delete(); } }
         function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('show'); }
-
-        // --- BOT LOGIC ---
-        function openBotModal() {
-            lastTopic = ""; const chatArea = document.getElementById('chatArea'); document.getElementById('chatInput').value = ""; 
-            chatArea.innerHTML = `<div class="chat-msg bot"><div class="bubble bot">Halo! Saya Akang Bot 🤖.<br>Ada yang bisa saya bantu tentang <b>Akang Cosplay</b>? Silakan pilih topik di menu, atau ketik pertanyaanmu secara langsung!</div></div>`;
-            renderBotOptions(); openModal('modalBot');
-        }
-
-        function renderBotOptions() {
-            const optionsArea = document.getElementById('chatOptions');
-            optionsArea.innerHTML = `<div class="bot-menu-title">Daftar Topik:</div>`;
-            botFaqData.forEach((item, index) => { optionsArea.innerHTML += `<button class="bot-opt-btn" onclick="askBot(${index})">${item.q}</button>`; });
-        }
-
-        function askBot(index) {
-            lastTopic = ""; const chatArea = document.getElementById('chatArea'); const item = botFaqData[index];
-            chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${item.q}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight;
-            setTimeout(() => { chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${item.a}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight; }, 600); 
-        }
-
+        // BOT LOGIC
+        function openBotModal() { lastTopic = ""; const chatArea = document.getElementById('chatArea'); document.getElementById('chatInput').value = ""; chatArea.innerHTML = `<div class="chat-msg bot"><div class="bubble bot">Halo! Saya Akang Bot 🤖.<br>Ada yang bisa saya bantu tentang <b>Akang Cosplay</b>? Silakan pilih topik di menu, atau ketik pertanyaanmu secara langsung!</div></div>`; renderBotOptions(); openModal('modalBot'); }
+        function renderBotOptions() { const optionsArea = document.getElementById('chatOptions'); optionsArea.innerHTML = `<div class="bot-menu-title">Daftar Topik:</div>`; botFaqData.forEach((item, index) => { optionsArea.innerHTML += `<button class="bot-opt-btn" onclick="askBot(${index})">${item.q}</button>`; }); }
+        function askBot(index) { lastTopic = ""; const chatArea = document.getElementById('chatArea'); const item = botFaqData[index]; chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${item.q}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight; setTimeout(() => { chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${item.a}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight; }, 600); }
         function handleChatEnter(event) { if (event.key === 'Enter') sendCustomMessage(); }
-
-        function sendCustomMessage() {
-            const inputField = document.getElementById('chatInput'); 
-            const rawText = inputField.value.trim(); 
-            const safeText = escapeHtml(rawText);
+        function sendCustomMessage() { const inputField = document.getElementById('chatInput'); const rawText = inputField.value.trim(); const safeText = escapeHtml(rawText); if (!rawText) return; const chatArea = document.getElementById('chatArea'); chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${safeText}</div></div>`; inputField.value = ""; chatArea.scrollTop = chatArea.scrollHeight; setTimeout(() => { let botReply = "Hmm.. untuk detail informasi tersebut, bisa Anda tanyakan langsung melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! Terimakasih! 😊"; chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${botReply}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight; }, 700); }
+        // BOT DATA
+        const botFaqData = [ { q: "Apa itu Akang Cosplay?", a: "Akang Cosplay adalah sebuah tim cosplay yang beranggotakan KanekIan/Ian, Nabilla, dan Rein/Azrael. Kami resmi berdiri sejak 14 Juni 2024! ✨" }, { q: "Apa itu Akang Gamers? / Live Stream", a: "🎮 <b>Akang Gamers</b> adalah divisi khusus dari Akang Cosplay! Di sini, <b>Rein</b> dan <b>Nabilla</b> rutin melakukan live streaming, main game bareng, dan ngobrol santai dengan para viewers.<br><br>Yuk mampir dan follow kami di:<br>- YT: <a href='https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq' target='_blank' class='bot-link'>Akang Gamers</a><br>- IG: <a href='https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z' target='_blank' class='bot-link'>@akanggamersofc</a><br>- TikTok: <a href='https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y' target='_blank' class='bot-link'>@realaffiliate1372</a>" }, { q: "Boleh minta Sosmed Akang Cosplay & Membernya?", a: "Tentu saja! Silakan kepoin dan follow media sosial kami ya:<br><br>✨ <b>Akang Cosplay:</b><br>- IG: <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a><br>- TikTok: <a href='https://www.tiktok.com/@akangcosplay?_r=1&_t=ZS-93phxJlcLKy' target='_blank' class='bot-link'>@akangcosplay</a><br>- YouTube: <a href='https://youtube.com/@akangcosplay?si=oEZArK_Fnyq5ObUt' target='_blank' class='bot-link'>Akang Cosplay</a><br><br>👥 <b>Instagram Member:</b><br>👉 KanekIan/Ian: <a href='https://www.instagram.com/ian07_/' target='_blank' class='bot-link'>@ian07_</a><br>👉 Rein/Azrael: <a href='https://www.instagram.com/reincoser_/' target='_blank' class='bot-link'>@reincoser_</a><br>👉 Nabilla: <a href='https://www.instagram.com/nabillacoser/' target='_blank' class='bot-link'>@nabillacoser</a>" }, { q: "Gimana cara join jadi member?", a: "Buat kamu yang ingin bergabung, sekarang kamu bisa langsung <b>Daftar (Register)</b> di website ini! Klik tombol 'Login' di pojok atas lalu pilih tab 'Daftar Member'. Setelah itu kamu bisa mulai mengisi data kostum dan prestasi kamu sendiri!" }, { q: "Terima jasa sewa kostum / makeup?", a: "Wah, untuk saat ini kami belum menyediakan jasa rental kostum, pembuat properti (maker), ataupun makeup cosplay. Tapi tenang aja, kami sedang mempertimbangkan untuk membuka jasa tersebut di masa mendatang. Ditunggu terus ya update dari kami! 🧵🎨" }, { q: "Bisa kerja sama (Juri/Guest Star)?", a: "Tentu saja! Akang Cosplay sangat terbuka dan antusias dengan berbagai tawaran kerja sama, baik sebagai Juri, Guest Star, maupun Talent. Yuk, diskusikan konsep kerjasamanya melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! 🤝🎤" } ];
+        // INJECT IAN
+        const ianDataRaw = [];
+        async function injectIanData() { alert("Fitur ini membutuhkan akses Admin penuh ke Database."); }
+        // RIWAYAT
+        function filterHistory(type, btn) { currentHistoryFilter = type; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); if(btn) btn.classList.add('active'); resetHistoryAndRender(); }
+        function resetHistoryAndRender() { displayedItemsCount = 0; document.getElementById('global-history-list').innerHTML = ""; prepareHistoryData(); loadNextHistoryBatch(); }
+        function prepareHistoryData() { const searchQuery = document.getElementById('searchHistory').value.toLowerCase(); filteredGlobalHistoryData = []; members.forEach(m => { if(m.history) m.history.forEach(h => { filteredGlobalHistoryData.push({ ...h, memberId: m.id, memberName: m.name, memberPhoto: m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png' }); }); }); if(currentHistoryFilter !== 'all') { filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { if(currentHistoryFilter === 'Coswalk') return item.category === 'Coswalk'; if(currentHistoryFilter === 'Coscom') return item.category === 'Cosplay Competition' || item.category === 'Coscom'; return true; }); } if(searchQuery !== "") { filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { let stringToSearch = `${item.memberName || ''} ${item.event || ''} ${item.char || ''} ${item.bestTitle || ''} juara ${item.rank || ''}`.toLowerCase(); return stringToSearch.includes(searchQuery); }); } filteredGlobalHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date)); }
+        function loadNextHistoryBatch() { 
+            const container = document.getElementById('global-history-list'); 
+            const batch = filteredGlobalHistoryData.slice(displayedItemsCount, displayedItemsCount + itemsBatchSize); 
             
-            if (!rawText) return; 
-            const chatArea = document.getElementById('chatArea'); chatArea.innerHTML += `<div class="chat-msg user"><div class="bubble user">${safeText}</div></div>`;
-            inputField.value = ""; chatArea.scrollTop = chatArea.scrollHeight;
-            setTimeout(() => {
-                let botReply = "Hmm.. untuk detail informasi tersebut, bisa Anda tanyakan langsung melalui DM Instagram kami di <a href='https://www.instagram.com/akangcosplay/' target='_blank' class='bot-link'>@akangcosplay</a> ya! Terimakasih! 😊";
-                chatArea.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${botReply}</div></div>`; chatArea.scrollTop = chatArea.scrollHeight;
-            }, 700);
-        }
-
-        // --- RIWAYAT LOGIC ---
-        function filterHistory(type, btn) {
-            currentHistoryFilter = type;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            if(btn) btn.classList.add('active'); 
-            resetHistoryAndRender();
-        }
-
-        function resetHistoryAndRender() {
-            displayedItemsCount = 0;
-            document.getElementById('global-history-list').innerHTML = "";
-            prepareHistoryData();
-            loadNextHistoryBatch();
-        }
-
-        function prepareHistoryData() {
-            const searchQuery = document.getElementById('searchHistory').value.toLowerCase();
-            filteredGlobalHistoryData = [];
-
-            members.forEach(m => {
-                if(m.history) m.history.forEach(h => { 
-                    filteredGlobalHistoryData.push({ 
-                        ...h, 
-                        memberId: m.id, 
-                        memberName: m.name, 
-                        memberPhoto: m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png' 
-                    }); 
-                });
-            });
-
-            if(currentHistoryFilter !== 'all') { 
-                filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { 
-                    if(currentHistoryFilter === 'Coswalk') return item.category === 'Coswalk'; 
-                    if(currentHistoryFilter === 'Coscom') return item.category === 'Cosplay Competition' || item.category === 'Coscom'; 
-                    return true; 
-                }); 
-            }
-
-            if(searchQuery !== "") { 
-                filteredGlobalHistoryData = filteredGlobalHistoryData.filter(item => { 
-                    let stringToSearch = `${item.memberName || ''} ${item.event || ''} ${item.char || ''} ${item.bestTitle || ''} juara ${item.rank || ''}`.toLowerCase(); 
-                    return stringToSearch.includes(searchQuery); 
-                }); 
-            }
-
-            filteredGlobalHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date));
-        }
-
-        function loadNextHistoryBatch() {
-            const container = document.getElementById('global-history-list');
-            const batch = filteredGlobalHistoryData.slice(displayedItemsCount, displayedItemsCount + itemsBatchSize);
-
-            if(batch.length === 0 && displayedItemsCount === 0) {
-                container.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>Pencarian tidak ditemukan.</p>";
-                return;
-            }
-
-            batch.forEach(item => {
-                let borderClass = (item.category === 'Cosplay Competition' || item.category === 'Coscom') ? 'feed-comp' : '';
-                let safeBestTitle = escapeHtml(item.bestTitle || 'Best Category');
-                let safeRankText = item.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(item.rank);
-                let safeEvent = escapeHtml(item.event);
-                let safeChar = escapeHtml(item.char);
-                let safeMemberName = escapeHtml(item.memberName);
-                let safeJudges = escapeHtml(item.judges || '');
+            if(batch.length === 0 && displayedItemsCount === 0) { container.innerHTML = "<p style='text-align:center; color:#777; margin-top:30px;'>Pencarian tidak ditemukan.</p>"; return; } 
+            
+            batch.forEach(item => { 
+                let borderClass = (item.category === 'Cosplay Competition' || item.category === 'Coscom') ? 'feed-comp' : ''; 
+                let safeBestTitle = escapeHtml(item.bestTitle || 'Best Category'); 
+                let safeRankText = item.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(item.rank); 
+                let safeEvent = escapeHtml(item.event); let safeChar = escapeHtml(item.char); let safeMemberName = escapeHtml(item.memberName); let safeJudges = escapeHtml(item.judges || ''); 
+                let proofImg = item.proof ? `<img src="${item.proof}" class="feed-img-proof" onclick="viewImage('${item.proof}')" loading="lazy">` : ''; 
+                let isOwner = currentUser && currentUser.uid === item.memberId; 
                 
-                let proofImg = item.proof ? `<img src="${item.proof}" class="feed-img-proof" onclick="viewImage('${item.proof}')" loading="lazy">` : '';
-                let adminBtns = isAdmin ? `<div class="admin-controls show-admin"><button class="btn-mini-action" style="background:#f39c12;" onclick="openEditHistory('${item.memberId}', '${item.id}')"><i class="fas fa-pen"></i></button><button class="btn-mini-action" style="background:var(--danger);" onclick="deleteHistory('${item.memberId}', '${item.id}')"><i class="fas fa-trash"></i></button></div>` : '';
-                let judgeText = (safeJudges && safeJudges !== '-') ? `<br><small style="color:#aaa;">👮 Juri: ${safeJudges}</small>` : '';
+                // ADMIN BTNS (HANYA MUNCUL JIKA ADMIN AKTIF ATAU PEMILIK)
+                let adminBtns = "";
+                if (isOwner) {
+                     adminBtns = `<div class="admin-controls" style="display:block"><button class="btn-mini-action" style="background:#f39c12;" onclick="openEditHistory('${item.memberId}', '${item.id}')"><i class="fas fa-pen"></i></button><button class="btn-mini-action" style="background:var(--danger);" onclick="deleteHistory('${item.memberId}', '${item.id}')"><i class="fas fa-trash"></i></button></div>`;
+                } else if (isAdmin) {
+                     adminBtns = `<div class="admin-controls show-admin"><button class="btn-mini-action" style="background:#f39c12;" onclick="openEditHistory('${item.memberId}', '${item.id}')"><i class="fas fa-pen"></i></button><button class="btn-mini-action" style="background:var(--danger);" onclick="deleteHistory('${item.memberId}', '${item.id}')"><i class="fas fa-trash"></i></button></div>`;
+                }
 
-                container.innerHTML += `
-                    <div class="feed-card ${borderClass}">
-                        ${adminBtns}
-                        <div class="feed-rank">${safeRankText}</div>
-                        <div class="feed-header">
-                            <img src="${item.memberPhoto}" class="feed-avatar">
-                            <div>
-                                <div class="feed-title">${safeMemberName}</div>
-                                <div class="feed-meta">${new Date(item.date).toLocaleDateString('id-ID')}</div>
-                            </div>
-                        </div>
-                        <div style="margin-top:5px;">
-                            <strong>${safeEvent}</strong> (${item.category === 'Cosplay Competition' ? 'Coscom' : item.category})<br>
-                            Cosplay: <span style="color:var(--primary)">${safeChar}</span>
-                            ${judgeText}
-                        </div>
-                        ${proofImg}
-                    </div>`;
-            });
-
-            displayedItemsCount += batch.length;
+                let judgeText = (safeJudges && safeJudges !== '-') ? `<br><small style="color:#aaa;">👮 Juri: ${safeJudges}</small>` : ''; 
+                container.innerHTML += `<div class="feed-card ${borderClass}">${adminBtns}<div class="feed-rank">${safeRankText}</div><div class="feed-header"><img src="${item.memberPhoto}" class="feed-avatar"><div><div class="feed-title">${safeMemberName}</div><div class="feed-meta">${new Date(item.date).toLocaleDateString('id-ID')}</div></div></div><div style="margin-top:5px;"><strong>${safeEvent}</strong> (${item.category === 'Cosplay Competition' ? 'Coscom' : item.category})<br>Cosplay: <span style="color:var(--primary)">${safeChar}</span>${judgeText}</div>${proofImg}</div>`; 
+            }); 
+            displayedItemsCount += batch.length; 
         }
-
-        const scrollObserver = new IntersectionObserver((entries) => {
-            if(entries[0].isIntersecting && displayedItemsCount < filteredGlobalHistoryData.length) {
-                loadNextHistoryBatch();
-            }
-        }, { threshold: 0.1 });
-
-        scrollObserver.observe(document.getElementById('scroll-trigger'));
-
-        // --- LEADERBOARD & PROFILE LOGIC ---
-        function renderLeaderboard() {
-            const list = document.getElementById('leaderboard-list'); list.innerHTML = "";
-            if(members.length === 0) { document.getElementById('empty-lb').style.display = 'block'; return; }
-            document.getElementById('empty-lb').style.display = 'none';
-
-            let sortedMembers = [...members];
-            sortedMembers.forEach(m => m.totalWins = m.history ? m.history.length : 0);
-            sortedMembers.sort((a, b) => b.totalWins - a.totalWins);
-
-            sortedMembers.forEach((m, i) => {
-                let rank = i + 1; let trophyColor = rank === 1 ? 'gold' : (rank === 2 ? 'silver' : '#cd7f32');
-                let photo = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
-                let safeName = escapeHtml(m.name);
-                
-                list.innerHTML += `<div class="leaderboard-card" onclick="openProfile('${m.id}')"><div class="rank-badge" style="color:${trophyColor}">#${rank}</div><img src="${photo}" class="avatar-small"><div class="lb-info"><h3>${safeName}</h3><span>${m.repertoire ? m.repertoire.length : 0} Kostum</span></div><div class="lb-stats"><div>${m.totalWins}</div></div></div>`;
-            });
-        }
-
+        const scrollObserver = new IntersectionObserver((entries) => { if(entries[0].isIntersecting && displayedItemsCount < filteredGlobalHistoryData.length) { loadNextHistoryBatch(); } }, { threshold: 0.1 }); scrollObserver.observe(document.getElementById('scroll-trigger'));
+        function renderLeaderboard() { const list = document.getElementById('leaderboard-list'); list.innerHTML = ""; if(members.length === 0) { document.getElementById('empty-lb').style.display = 'block'; return; } document.getElementById('empty-lb').style.display = 'none'; let sortedMembers = [...members]; sortedMembers.forEach(m => m.totalWins = m.history ? m.history.length : 0); sortedMembers.sort((a, b) => b.totalWins - a.totalWins); sortedMembers.forEach((m, i) => { let rank = i + 1; let trophyColor = rank === 1 ? 'gold' : (rank === 2 ? 'silver' : '#cd7f32'); let photo = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; let safeName = escapeHtml(m.name); list.innerHTML += `<div class="leaderboard-card" onclick="openProfile('${m.id}')"><div class="rank-badge" style="color:${trophyColor}">#${rank}</div><img src="${photo}" class="avatar-small"><div class="lb-info"><h3>${safeName}</h3><span>${m.repertoire ? m.repertoire.length : 0} Kostum</span></div><div class="lb-stats"><div>${m.totalWins}</div></div></div>`; }); }
+        
         function openProfile(id) {
             const m = members.find(x => x.id == id); if(!m) return; 
+            const btnEdit = document.querySelector('.btn-edit-profile');
             const delProfileBtn = document.querySelector('.btn-delete-profile');
-            if(isAdmin) delProfileBtn.classList.add('show-admin'); else delProfileBtn.classList.remove('show-admin');
-
-            document.getElementById('editId').value = m.id; 
-            document.getElementById('p-name').innerText = m.name; 
-            document.getElementById('p-bio').innerText = m.bio || "-"; 
             
-            document.getElementById('p-photo').src = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            // LOGIC TOMBOL EDIT/HAPUS PROFIL
+            // 1. Pemilik selalu bisa lihat tombolnya
+            // 2. Admin (jika AKTIF) bisa lihat tombolnya di profil ORANG LAIN
             
-            let coswalkCount = m.history ? m.history.filter(h => h.category === 'Coswalk').length : 0;
-            let compCount = m.history ? m.history.filter(h => h.category === 'Cosplay Competition' || h.category === 'Coscom').length : 0;
+            let isOwner = (currentUser && currentUser.uid === m.id);
             
-            document.getElementById('p-stat-coswalk').innerText = coswalkCount; document.getElementById('p-stat-comp').innerText = compCount;
-
-            const igBadge = document.getElementById('p-ig');
-            if(m.ig && m.ig.trim() !== "") { let igLink = m.ig.trim(); if(!igLink.startsWith('http')) { igLink = 'https://instagram.com/' + igLink.replace('@', ''); } igBadge.href = igLink; igBadge.style.display = 'inline-flex'; } else { igBadge.style.display = 'none'; }
-
-            const galGrid = document.getElementById('p-gallery-grid'); galGrid.innerHTML = "";
-            if(m.gallery && m.gallery.length > 0) {
-                m.gallery.forEach((imgSrc, index) => {
-                    let delBtn = isAdmin ? `<button class="btn-del-photo show-admin" onclick="deleteGalleryPhoto('${m.id}', ${index})"><i class="fas fa-trash"></i></button>` : '';
-                    galGrid.innerHTML += `<div class="gallery-item">${delBtn}<img src="${imgSrc}" class="gallery-img" onclick="viewImage('${imgSrc}')"></div>`;
-                });
-            } else { galGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.8em;'>Belum ada foto di galeri.</p>"; }
-
-            const repDiv = document.getElementById('p-repertoire'); repDiv.innerHTML = "";
-            if(m.repertoire) m.repertoire.forEach(r => repDiv.innerHTML += `<span class="tag">${escapeHtml(r)}</span>`);
-
-            const histDiv = document.getElementById('p-history-list'); histDiv.innerHTML = "";
-            if(m.history) {
-                let sortedHistory = [...m.history].sort((a,b) => new Date(b.date) - new Date(a.date));
-                sortedHistory.forEach(h => {
-                    let safeBestTitle = escapeHtml(h.bestTitle || 'Best');
-                    let rankText = h.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(h.rank); 
-                    let color = h.category === 'Coswalk' ? 'var(--accent-blue)' : 'var(--gold)'; let proofIcon = h.proof ? '📷' : '';
-                    let actionBtns = isAdmin ? `<div style="display:flex; gap:5px;"><button style="background:none; border:none; color:#f39c12; cursor:pointer;" onclick="openEditHistory('${m.id}', '${h.id}')"><i class="fas fa-pen"></i></button><button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="deleteHistory('${m.id}', '${h.id}')"><i class="fas fa-trash"></i></button></div>` : '';
-                    
-                    histDiv.innerHTML += `<div style="background:#3d4655; padding:10px; margin-bottom:10px; border-radius:5px; border-left:3px solid ${color}; display:flex; justify-content:space-between; align-items:center;"><div><span style="font-weight:bold">${escapeHtml(h.event)}</span><br><small>${escapeHtml(h.char)} | ${rankText} ${proofIcon}</small></div>${actionBtns}</div>`;
-                });
+            if (isOwner) {
+                btnEdit.style.display = "block";
+                delProfileBtn.style.display = "block";
+            } else if (isAdmin) {
+                btnEdit.style.display = "block";
+                delProfileBtn.style.display = "block";
+            } else {
+                btnEdit.style.display = "none";
+                delProfileBtn.style.display = "none";
             }
+
+            document.getElementById('editId').value = m.id; document.getElementById('p-name').innerText = m.name; document.getElementById('p-bio').innerText = m.bio || "-"; document.getElementById('p-photo').src = m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            let coswalkCount = m.history ? m.history.filter(h => h.category === 'Coswalk').length : 0; let compCount = m.history ? m.history.filter(h => h.category === 'Cosplay Competition' || h.category === 'Coscom').length : 0; document.getElementById('p-stat-coswalk').innerText = coswalkCount; document.getElementById('p-stat-comp').innerText = compCount;
+            const igBadge = document.getElementById('p-ig'); if(m.ig && m.ig.trim() !== "") { let igLink = m.ig.trim(); if(!igLink.startsWith('http')) { igLink = 'https://instagram.com/' + igLink.replace('@', ''); } igBadge.href = igLink; igBadge.style.display = 'inline-flex'; } else { igBadge.style.display = 'none'; }
+            
+            const galGrid = document.getElementById('p-gallery-grid'); galGrid.innerHTML = "";
+            if(m.gallery && m.gallery.length > 0) { 
+                m.gallery.forEach((imgSrc, index) => { 
+                    // Tombol Hapus Gallery: Owner atau Admin Aktif
+                    let delBtn = (isOwner || isAdmin) ? `<button class="btn-del-photo show-admin" style="display:block" onclick="deleteGalleryPhoto('${m.id}', ${index})"><i class="fas fa-trash"></i></button>` : ''; 
+                    galGrid.innerHTML += `<div class="gallery-item">${delBtn}<img src="${imgSrc}" class="gallery-img" onclick="viewImage('${imgSrc}')"></div>`; 
+                }); 
+            } else { galGrid.innerHTML = "<p style='grid-column:1/-1; text-align:center; color:#777; font-size:0.8em;'>Belum ada foto di galeri.</p>"; }
+            
+            const repDiv = document.getElementById('p-repertoire'); repDiv.innerHTML = ""; if(m.repertoire) m.repertoire.forEach(r => repDiv.innerHTML += `<span class="tag">${escapeHtml(r)}</span>`);
+            const histDiv = document.getElementById('p-history-list'); histDiv.innerHTML = "";
+            if(m.history) { 
+                let sortedHistory = [...m.history].sort((a,b) => new Date(b.date) - new Date(a.date)); 
+                sortedHistory.forEach(h => { 
+                    let safeBestTitle = escapeHtml(h.bestTitle || 'Best'); let rankText = h.rank === 'Best' ? safeBestTitle : 'Juara ' + escapeHtml(h.rank); let color = h.category === 'Coswalk' ? 'var(--accent-blue)' : 'var(--gold)'; let proofIcon = h.proof ? '📷' : ''; 
+                    
+                    // Tombol Edit History: Owner atau Admin Aktif
+                    let actionBtns = (isOwner || isAdmin) ? `<div style="display:flex; gap:5px;"><button style="background:none; border:none; color:#f39c12; cursor:pointer;" onclick="openEditHistory('${m.id}', '${h.id}')"><i class="fas fa-pen"></i></button><button style="background:none; border:none; color:var(--danger); cursor:pointer;" onclick="deleteHistory('${m.id}', '${h.id}')"><i class="fas fa-trash"></i></button></div>` : ''; 
+                    
+                    histDiv.innerHTML += `<div style="background:#3d4655; padding:10px; margin-bottom:10px; border-radius:5px; border-left:3px solid ${color}; display:flex; justify-content:space-between; align-items:center;"><div><span style="font-weight:bold">${escapeHtml(h.event)}</span><br><small>${escapeHtml(h.char)} | ${rankText} ${proofIcon}</small></div>${actionBtns}</div>`; 
+                }); 
+            }
+            
+            // TOMBOL TAMBAH FOTO (HANYA PEMILIK) - Admin tidak perlu nambah foto orang lain biasanya
+            const btnAddPhoto = document.querySelector('.btn-add-photo');
+            if(isOwner) btnAddPhoto.style.display = "flex"; else btnAddPhoto.style.display = "none";
+
             switchView('profile');
         }
 
-        function submitMember() {
-            const name = document.getElementById('regName').value; const bio = document.getElementById('regBio').value; const ig = document.getElementById('regIg').value; const file = document.getElementById('regPhoto').files[0];
-            if(!name) { alert("Isi nama!"); return; }
-            const reader = new FileReader(); reader.onload = (e) => saveMember(name, bio, ig, e.target.result);
-            if(file) reader.readAsDataURL(file); else saveMember(name, bio, ig, null);
+        function openModalWin() { 
+            const sel = document.getElementById('winMember'); sel.innerHTML = ""; 
+            if(isAdmin) { members.forEach(m => sel.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)}</option>`); } 
+            else if (currentUser) { const myProfile = members.find(m => m.id === currentUser.uid); if(myProfile) sel.innerHTML = `<option value="${myProfile.id}">${escapeHtml(myProfile.name)}</option>`; } 
+            else { alert("Harap login terlebih dahulu."); return; }
+            document.getElementById('divBestTitle').classList.add('hidden'); openModal('modalWin'); 
         }
 
-        function saveMember(name, bio, ig, photo) {
-            const newMember = { id: Date.now(), name, bio, ig, photo, history: [], repertoire: [], gallery: [] };
-            db.collection("members").doc(newMember.id.toString()).set(newMember).then(() => { closeModal('modalMember'); });
-        }
-
-        function openEditModal() {
-            const id = document.getElementById('editId').value; const m = members.find(x => x.id == id);
-            document.getElementById('editName').value = m.name; document.getElementById('editBio').value = m.bio || ""; document.getElementById('editIg').value = m.ig || ""; document.getElementById('editPhoto').value = "";
-            currentTempRepertoire = m.repertoire ? [...m.repertoire] : []; renderEditRepertoire(); openModal('modalEdit');
-        }
-
-        function saveEditProfile() {
-            const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); const file = document.getElementById('editPhoto').files[0];
-            const finalize = (photo) => {
-                m.name = document.getElementById('editName').value; m.bio = document.getElementById('editBio').value; m.ig = document.getElementById('editIg').value;
-                if(photo) m.photo = photo; m.repertoire = [...currentTempRepertoire];
-                db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEdit'); openProfile(id); });
-            };
-            if(file) { const reader = new FileReader(); reader.onload = (e) => finalize(e.target.result); reader.readAsDataURL(file); } else finalize(null);
-        }
-
-        function submitWin() {
-            const id = document.getElementById('winMember').value; const event = document.getElementById('winEvent').value; const cat = document.getElementById('winCat').value; const char = document.getElementById('winChar').value; const rank = document.getElementById('winRank').value; const judges = document.getElementById('winJudges').value; const bestTitle = document.getElementById('winBestTitle').value; const proofFile = document.getElementById('winProof').files[0]; const dateInput = document.getElementById('winDate').value;
-            if(!event || !char) { alert("Data kurang lengkap!"); return; }
-            const finalDate = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString();
-
-            const processSave = (proofBase64) => {
-                const m = members.find(x => x.id == id); if(!m.history) m.history = [];
-                m.history.unshift({ id: Date.now() + Math.random().toString(), event, category: cat, char, rank, judges, bestTitle: (rank === 'Best' ? bestTitle : null), proof: proofBase64, date: finalDate });
-                if(!m.repertoire) m.repertoire = []; if(!m.repertoire.includes(char)) m.repertoire.push(char);
-                db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalWin'); });
-            };
-
-            if(proofFile) {
-                const reader = new FileReader(); reader.readAsDataURL(proofFile);
-                reader.onload = (e) => {
-                    const img = new Image(); img.src = e.target.result;
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500;
-                        let w = img.width, h = img.height;
-                        if(w>h) { if(w>MAX_SIZE) { h*=MAX_SIZE/w; w=MAX_SIZE; } } else { if(h>MAX_SIZE) { w*=MAX_SIZE/h; h=MAX_SIZE; } }
-                        canvas.width=w; canvas.height=h; ctx.drawImage(img,0,0,w,h);
-                        processSave(canvas.toDataURL('image/jpeg', 0.6));
-                    }
-                };
-            } else { processSave(null); }
-        }
-
-        function openEditHistory(memberId, historyId) {
-            const m = members.find(x => x.id == memberId); const h = m.history.find(x => x.id == historyId);
-            document.getElementById('editHistMemberId').value = memberId; document.getElementById('editHistId').value = historyId; document.getElementById('editHistEvent').value = h.event; document.getElementById('editHistCat').value = h.category; document.getElementById('editHistChar').value = h.char; document.getElementById('editHistJudges').value = h.judges || ""; document.getElementById('editHistRank').value = h.rank;
-            if(h.date) { let dateObj = new Date(h.date); let year = dateObj.getFullYear(); let month = String(dateObj.getMonth() + 1).padStart(2, '0'); let day = String(dateObj.getDate()).padStart(2, '0'); document.getElementById('editHistDate').value = `${year}-${month}-${day}`; }
-            const div = document.getElementById('divEditBestTitle'); if(h.rank === 'Best') { div.classList.remove('hidden'); document.getElementById('editHistBestTitle').value = h.bestTitle; } else { div.classList.add('hidden'); }
-            openModal('modalEditHistory');
-        }
-
-        function toggleEditBestInput() {
-            const rank = document.getElementById('editHistRank').value; const div = document.getElementById('divEditBestTitle');
-            if(rank === 'Best') div.classList.remove('hidden'); else div.classList.add('hidden');
-        }
-
-        function saveEditHistory() {
-            const mId = document.getElementById('editHistMemberId').value; const hId = document.getElementById('editHistId').value; const m = members.find(x => x.id == mId); const h = m.history.find(x => x.id == hId);
-            h.event = document.getElementById('editHistEvent').value; h.category = document.getElementById('editHistCat').value; h.char = document.getElementById('editHistChar').value; h.judges = document.getElementById('editHistJudges').value; h.rank = document.getElementById('editHistRank').value;
-            const dateInput = document.getElementById('editHistDate').value; if(dateInput) h.date = new Date(dateInput).toISOString();
-            if(h.rank === 'Best') h.bestTitle = document.getElementById('editHistBestTitle').value; else h.bestTitle = null;
-            db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEditHistory'); });
-        }
-
-        function uploadGalleryPhoto(input) {
-            const file = input.files[0]; if(!file) return;
-            const reader = new FileReader(); reader.readAsDataURL(file);
-            reader.onload = (event) => {
-                const img = new Image(); img.src = event.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500; 
-                    let width = img.width, height = img.height;
-                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
-                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.6); const id = document.getElementById('editId').value; const m = members.find(x => x.id == id);
-                    if(!m.gallery) m.gallery = []; m.gallery.push(dataUrl);
-                    db.collection("members").doc(m.id.toString()).set(m).then(() => { openProfile(id); });
-                }
-            }
-            input.value = ""; 
-        }
-
+        function openEditModal() { const id = document.getElementById('editId').value; if(!currentUser || (currentUser.uid !== id && !isAdmin)) { alert("Anda tidak berhak mengedit profil ini."); return; } const m = members.find(x => x.id == id); document.getElementById('editName').value = m.name; document.getElementById('editBio').value = m.bio || ""; document.getElementById('editIg').value = m.ig || ""; document.getElementById('editPhoto').value = ""; currentTempRepertoire = m.repertoire ? [...m.repertoire] : []; renderEditRepertoire(); openModal('modalEdit'); }
+        function saveEditProfile() { const id = document.getElementById('editId').value; if(!currentUser || (currentUser.uid !== id && !isAdmin)) { alert("Akses Ditolak."); return; } const m = members.find(x => x.id == id); const file = document.getElementById('editPhoto').files[0]; const finalize = (photo) => { m.name = document.getElementById('editName').value; m.bio = document.getElementById('editBio').value; m.ig = document.getElementById('editIg').value; if(photo) m.photo = photo; m.repertoire = [...currentTempRepertoire]; db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEdit'); openProfile(id); }); }; if(file) { const reader = new FileReader(); reader.onload = (e) => finalize(e.target.result); reader.readAsDataURL(file); } else finalize(null); }
+        function submitWin() { const id = document.getElementById('winMember').value; if(!currentUser || (currentUser.uid !== id && !isAdmin)) { alert("Anda hanya bisa input kemenangan untuk diri sendiri."); return; } const event = document.getElementById('winEvent').value; const cat = document.getElementById('winCat').value; const char = document.getElementById('winChar').value; const rank = document.getElementById('winRank').value; const judges = document.getElementById('winJudges').value; const bestTitle = document.getElementById('winBestTitle').value; const proofFile = document.getElementById('winProof').files[0]; const dateInput = document.getElementById('winDate').value; if(!event || !char) { alert("Data kurang lengkap!"); return; } const finalDate = dateInput ? new Date(dateInput).toISOString() : new Date().toISOString(); const processSave = (proofBase64) => { const m = members.find(x => x.id == id); if(!m.history) m.history = []; m.history.unshift({ id: Date.now() + Math.random().toString(), event, category: cat, char, rank, judges, bestTitle: (rank === 'Best' ? bestTitle : null), proof: proofBase64, date: finalDate }); if(!m.repertoire) m.repertoire = []; if(!m.repertoire.includes(char)) m.repertoire.push(char); db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalWin'); }); }; if(proofFile) { const reader = new FileReader(); reader.readAsDataURL(proofFile); reader.onload = (e) => { const img = new Image(); img.src = e.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500; let w = img.width, h = img.height; if(w>h) { if(w>MAX_SIZE) { h*=MAX_SIZE/w; w=MAX_SIZE; } } else { if(h>MAX_SIZE) { w*=MAX_SIZE/h; h=MAX_SIZE; } } canvas.width=w; canvas.height=h; ctx.drawImage(img,0,0,w,h); processSave(canvas.toDataURL('image/jpeg', 0.6)); } }; } else { processSave(null); } }
+        function openEditHistory(memberId, historyId) { const m = members.find(x => x.id == memberId); const h = m.history.find(x => x.id == historyId); document.getElementById('editHistMemberId').value = memberId; document.getElementById('editHistId').value = historyId; document.getElementById('editHistEvent').value = h.event; document.getElementById('editHistCat').value = h.category; document.getElementById('editHistChar').value = h.char; document.getElementById('editHistJudges').value = h.judges || ""; document.getElementById('editHistRank').value = h.rank; if(h.date) { let dateObj = new Date(h.date); let year = dateObj.getFullYear(); let month = String(dateObj.getMonth() + 1).padStart(2, '0'); let day = String(dateObj.getDate()).padStart(2, '0'); document.getElementById('editHistDate').value = `${year}-${month}-${day}`; } const div = document.getElementById('divEditBestTitle'); if(h.rank === 'Best') { div.classList.remove('hidden'); document.getElementById('editHistBestTitle').value = h.bestTitle; } else { div.classList.add('hidden'); } openModal('modalEditHistory'); }
+        function toggleEditBestInput() { const rank = document.getElementById('editHistRank').value; const div = document.getElementById('divEditBestTitle'); if(rank === 'Best') div.classList.remove('hidden'); else div.classList.add('hidden'); }
+        function saveEditHistory() { const mId = document.getElementById('editHistMemberId').value; const hId = document.getElementById('editHistId').value; if(!currentUser || (currentUser.uid !== mId && !isAdmin)) { alert("Akses Ditolak"); return; } const m = members.find(x => x.id == mId); const h = m.history.find(x => x.id == hId); h.event = document.getElementById('editHistEvent').value; h.category = document.getElementById('editHistCat').value; h.char = document.getElementById('editHistChar').value; h.judges = document.getElementById('editHistJudges').value; h.rank = document.getElementById('editHistRank').value; const dateInput = document.getElementById('editHistDate').value; if(dateInput) h.date = new Date(dateInput).toISOString(); if(h.rank === 'Best') h.bestTitle = document.getElementById('editHistBestTitle').value; else h.bestTitle = null; db.collection("members").doc(m.id.toString()).set(m).then(() => { closeModal('modalEditHistory'); }); }
+        function uploadGalleryPhoto(input) { const file = input.files[0]; if(!file) return; const reader = new FileReader(); reader.readAsDataURL(file); reader.onload = (event) => { const img = new Image(); img.src = event.target.result; img.onload = () => { const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d'); const MAX_SIZE = 500; let width = img.width, height = img.height; if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } } canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height); const dataUrl = canvas.toDataURL('image/jpeg', 0.6); const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); if(!m.gallery) m.gallery = []; m.gallery.push(dataUrl); db.collection("members").doc(m.id.toString()).set(m).then(() => { openProfile(id); }); } }; input.value = ""; }
         function deleteGalleryPhoto(memberId, photoIndex) { if(confirm("Hapus foto ini dari galeri?")) { const m = members.find(x => x.id == memberId); m.gallery.splice(photoIndex, 1); db.collection("members").doc(m.id.toString()).set(m).then(() => { openProfile(memberId); }); } }
-
-        async function toggleAdminMode() {
-            const adminOnlyBtns = document.querySelectorAll('.admin-only'); 
-            if(!isAdmin) {
-                let pass = prompt("Masukkan Kunci Admin:");
-                if(pass) {
-                    const hash = await sha256(pass);
-                    if(hash === ADMIN_HASH) {
-                        isAdmin = true; document.getElementById('iconLock').classList.replace('fa-lock', 'fa-lock-open'); document.getElementById('iconLock').classList.add('admin-active'); document.getElementById('adminBadge').style.display = 'block'; document.getElementById('btnGlobalSettings').style.display = 'block'; adminOnlyBtns.forEach(btn => btn.style.display = 'block'); alert("Admin Mode: AKTIF."); renderAll(); 
-                    } else { alert("Password Salah!"); }
-                }
-            } else {
-                isAdmin = false; document.getElementById('iconLock').classList.replace('fa-lock-open', 'fa-lock'); document.getElementById('iconLock').classList.remove('admin-active'); document.getElementById('adminBadge').style.display = 'none'; document.getElementById('btnGlobalSettings').style.display = 'none'; adminOnlyBtns.forEach(btn => btn.style.display = 'none'); renderAll();
-            }
-        }
-
         function deleteHistory(memberId, historyId) { if(confirm("Hapus history ini?")) { const m = members.find(x => x.id == memberId); m.history = m.history.filter(h => h.id !== historyId); db.collection("members").doc(m.id.toString()).set(m); } }
-        function deleteCurrentMember() { const id = document.getElementById('editId').value; if(confirm("AWAS! Hapus member akan menghapus semua historynya. Lanjut?")) { db.collection("members").doc(id.toString()).delete().then(() => { switchView('leaderboard'); }); } }
-
-        function addRepertoireTag() { 
-            const val = document.getElementById('repInput').value; 
-            const safeVal = escapeHtml(val);
-            if(safeVal && !currentTempRepertoire.includes(safeVal)) { currentTempRepertoire.push(safeVal); renderEditRepertoire(); document.getElementById('repInput').value = ""; } 
-        }
-        
-        function renderEditRepertoire() { 
-            const div = document.getElementById('editRepList'); div.innerHTML = ""; 
-            currentTempRepertoire.forEach((t, i) => { div.innerHTML += `<span class="tag">${t} <i class="fas fa-times" onclick="currentTempRepertoire.splice(${i},1); renderEditRepertoire()"></i></span>`; }); 
-        }
-        
+        function deleteCurrentMember() { const id = document.getElementById('editId').value; if(!currentUser || (currentUser.uid !== id && !isAdmin)) { alert("Gagal."); return; } if(confirm("AWAS! Hapus member akan menghapus semua historynya secara permanen.")) { db.collection("members").doc(id.toString()).delete().then(() => { if(currentUser.uid === id) { auth.signOut(); } switchView('leaderboard'); }); } }
+        function addRepertoireTag() { const val = document.getElementById('repInput').value; const safeVal = escapeHtml(val); if(safeVal && !currentTempRepertoire.includes(safeVal)) { currentTempRepertoire.push(safeVal); renderEditRepertoire(); document.getElementById('repInput').value = ""; } }
+        function renderEditRepertoire() { const div = document.getElementById('editRepList'); div.innerHTML = ""; currentTempRepertoire.forEach((t, i) => { div.innerHTML += `<span class="tag">${t} <i class="fas fa-times" onclick="currentTempRepertoire.splice(${i},1); renderEditRepertoire()"></i></span>`; }); }
         document.addEventListener('contextmenu', event => event.preventDefault());
-
-        function renderAll() { 
-            if(document.getElementById('view-leaderboard').classList.contains('active')) renderLeaderboard();
-            if(document.getElementById('view-history').classList.contains('active')) resetHistoryAndRender();
-            if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value);
-            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers();
-        }
-        function openModalWin() { const sel = document.getElementById('winMember'); sel.innerHTML = ""; members.forEach(m => sel.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)}</option>`); document.getElementById('divBestTitle').classList.add('hidden'); openModal('modalWin'); }
+        function renderAll() { if(document.getElementById('view-leaderboard').classList.contains('active')) renderLeaderboard(); if(document.getElementById('view-history').classList.contains('active')) resetHistoryAndRender(); if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value); if(document.getElementById('view-gamers').classList.contains('active')) renderGamers(); }
         function toggleBestInput() { const rank = document.getElementById('winRank').value; const div = document.getElementById('divBestTitle'); if(rank === 'Best') div.classList.remove('hidden'); else div.classList.add('hidden'); }
         function viewImage(src) { let w = window.open(""); w.document.write(`<img src="${src}" style="max-width:100%">`); }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; if(id === 'modalSettings') { renderMigrationList(); } }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
     </script>
 </body>
-
 </html>
-
