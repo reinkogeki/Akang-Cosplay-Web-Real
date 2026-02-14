@@ -11,11 +11,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
 
     <style>
-        /* --- LOAD CUSTOM FONT --- */
+        /* --- LOAD CUSTOM FONTS --- */
         @font-face {
             font-family: 'HardRace';
             src: url('Hard Race.otf') format('opentype');
             font-weight: normal; font-style: normal;
+        }
+
+        /* LOAD LEAGUE SPARTAN VARIABLE FONT */
+        @font-face {
+            font-family: 'LeagueSpartan';
+            src: url('LeagueSpartan-VariableFont_wght.ttf') format('truetype');
+            font-weight: 100 900; /* Mendukung range berat dari Thin sampai Black */
+            font-style: normal;
         }
 
         /* --- CSS VARIABLES & RESET --- */
@@ -31,6 +39,10 @@
             --danger: #ff6b6b;
             --purple: #9b59b6;
             --green: #2ecc71;
+            /* Warna Text & Glow Baru */
+            --text-cosplay: #ff8686;
+            --text-trainee: #ffd89d;
+            --glow-trainee: #a6895e;
         }
 
         * { box-sizing: border-box; }
@@ -57,8 +69,9 @@
             border-bottom-color: var(--gold);
         }
         
+        /* Warna background header trainee */
         header.trainee-mode {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
+            background: #2154a1; /* Warna biru baru */
             border-bottom-color: var(--sky-blue);
         }
 
@@ -69,17 +82,43 @@
             display: none; transition: transform 0.3s;
         }
 
+        /* --- UPDATE: STYLE KHUSUS JUDUL UTAMA (League Spartan Custom Weight) --- */
         header h1 { 
-            margin: 0; font-size: 1.5rem; text-transform: uppercase; letter-spacing: 2px; 
+            margin: 0; 
+            font-family: 'LeagueSpartan', sans-serif; /* Pakai font baru */
+            
+            /* Weight 750: Di antara Semibold (600) dan Extrabold (800) */
+            font-variation-settings: 'wght' 750; 
+            font-weight: 750; 
+            
+            font-size: 2.2rem; 
+            text-transform: uppercase; /* Wajib Huruf Kapital Semua */
+            letter-spacing: 2px; 
+            
+            /* Line Spacing 1.4 sesuai permintaan */
+            line-height: 1.4;
+            
             transition: all 0.3s ease;
+            
+            /* Warna: Akang Cosplay (#ff8686) & Glow Merah Asli */
+            color: var(--text-cosplay);
+            text-shadow: 0 0 15px rgba(255, 56, 56, 0.8);
+        }
+
+        /* --- Style khusus untuk Akang Trainee (#ffd89d & Glow #a6895e) --- */
+        header.trainee-mode h1 {
+            color: var(--text-trainee) !important;
+            text-shadow: 0 0 20px var(--glow-trainee) !important;
         }
 
         .title-gamers {
             font-family: 'HardRace', sans-serif !important;
             font-size: 2rem !important; 
             color: var(--gold) !important; 
-            text-shadow: 0 0 10px rgba(255, 165, 2, 0.8), 2px 2px 0px #000;
+            text-shadow: 0 0 10px rgba(255, 165, 2, 0.8), 2px 2px 0px #000 !important;
             letter-spacing: 3px;
+            /* Reset line height untuk font HardRace jika perlu */
+            line-height: normal; 
         }
 
         header p { margin: 5px 0 0; opacity: 0.8; font-size: 0.8rem; transition: all 0.3s; }
@@ -414,8 +453,11 @@
             <div class="feed-card feed-trainee" style="margin-bottom: 20px;">
                 <h3 style="margin-top:0; color:var(--sky-blue);">Apa itu Akang Trainee?</h3>
                 <p style="font-size: 0.9rem; line-height: 1.5; color: #ddd; margin-bottom: 0;">
-                    <b>Akang Trainee</b> adalah wadah bagi teman-teman yang ingin bergabung dalam komunitas Akang Cosplay untuk berlatih bersama, berbagi info event jejepangan, dan mengembangkan hobi cosplay.<br><br>
-                    Berbeda dengan Official Member, Akang Trainee berfungsi sebagai <b>jembatan</b>; baik bagi kamu yang menargetkan menjadi member resmi, maupun yang sekadar ingin seru-seruan dan belajar bareng di komunitas ini.
+                    Akang Trainee adalah ruang pengembangan bagi cosplayer yang ingin terus berkembang dan meningkatkan kualitas diri dalam dunia performa dan kompetisi. Di sini, kita berlatih bersama, saling memberi evaluasi, dan belajar melalui pengalaman secara bertahap.
+                    <br><br>
+                    Akang Trainee menjadi tempat untuk melihat sejauh mana komitmen dan konsistensi setiap individu dalam prosesnya. Bukan tentang siapa yang paling hebat, tetapi tentang siapa yang mau terus belajar dan memperbaiki diri.
+                    <br><br>
+                    Kami percaya bahwa performer yang baik lahir dari lingkungan yang saling mendukung dan mendorong satu sama lain untuk tumbuh.
                 </p>
             </div>
 
@@ -700,12 +742,8 @@
     </div>
 
     <script>
-        // --- 0. KONFIGURASI GAMBAR & LOGO ---
-        let defaultLogoUrl = ""; 
-        let gamersLogoUrl = ""; 
-        let traineeLogoUrl = "";
+        let defaultLogoUrl = ""; let gamersLogoUrl = ""; let traineeLogoUrl = "";
         
-        // --- 1. INISIALISASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDTzkh9BbSf1qpCiCDru3JibPi-G8nokfQ", 
             authDomain: "website-akang-cosplay.firebaseapp.com",
@@ -719,163 +757,57 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        // --- DATA & STATE ---
-        let members = []; 
-        let games = []; 
-        let currentTempRepertoire = [];
-        let isRein = false; 
-        let isAdmin = false; 
-        let currentUser = null; 
+        let members = []; let games = []; let currentTempRepertoire = [];
+        let isRein = false; let isAdmin = false; let currentUser = null; 
         let isManagePostMode = false; // State untuk Mode Hapus Postingan
-        
-        // HASH PASSWORD ADMIN (Default: admin123)
         const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
         
-        // --- LAZY LOAD & FILTER VARIABLES ---
-        let currentHistoryData = []; 
-        let currentHistoryDisplayCount = 0; 
-        const HISTORY_BATCH_SIZE = 5; 
-        let activeHistoryType = ''; 
-        let activeFilterCategory = 'all';
+        let currentHistoryData = []; let currentHistoryDisplayCount = 0; const HISTORY_BATCH_SIZE = 5; 
+        let activeHistoryType = ''; let activeFilterCategory = 'all';
 
-        // --- SECURITY FUNCTION (ANTI-XSS) ---
-        function escapeHtml(text) {
-            if (!text) return "";
-            if (typeof text !== "string") return text;
-            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-        }
+        function escapeHtml(text) { if (!text) return ""; if (typeof text !== "string") return text; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
-        // --- 2. LISTENER REAL-TIME FIREBASE ---
         auth.onAuthStateChanged((user) => {
             currentUser = user;
-            if(currentUser && currentUser.email === "reinkogeki@gmail.com") {
-                isRein = true;
-            } else {
-                isRein = false;
-                isAdmin = false; 
-            }
+            if(currentUser && currentUser.email === "reinkogeki@gmail.com") { isRein = true; } else { isRein = false; isAdmin = false; }
             updateAuthUI();
         });
 
-        // DEBOUNCE FUNCTION (Mencegah reload berkedip)
         let debounceTimer;
         db.collection("members").onSnapshot((snapshot) => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                members = [];
-                snapshot.forEach((doc) => { members.push(doc.data()); });
-                renderAll(); 
-            }, 500); 
+            debounceTimer = setTimeout(() => { members = []; snapshot.forEach((doc) => { members.push(doc.data()); }); renderAll(); }, 500);
         });
 
-        db.collection("games").onSnapshot((snapshot) => {
-            games = [];
-            snapshot.forEach((doc) => { games.push(doc.data()); });
-            if(document.getElementById('view-gamers').classList.contains('active')) renderGames();
-        });
+        db.collection("games").onSnapshot((snapshot) => { games = []; snapshot.forEach((doc) => { games.push(doc.data()); }); if(document.getElementById('view-gamers').classList.contains('active')) renderGames(); });
+        
+        db.collection("settings").doc("global").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { defaultLogoUrl = doc.data().logo; if(document.getElementById('view-about').classList.contains('active')) { document.getElementById('about-logo').src = defaultLogoUrl; } if(!document.getElementById('view-gamers').classList.contains('active') && !document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = defaultLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
+        db.collection("settings").doc("gamers").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { gamersLogoUrl = doc.data().logo; if(document.getElementById('view-gamers').classList.contains('active')) { document.getElementById('teamLogo').src = gamersLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
+        db.collection("settings").doc("trainee").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { traineeLogoUrl = doc.data().logo; if(document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = traineeLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
 
-        // LOAD LOGO SETTINGS
-        db.collection("settings").doc("global").onSnapshot((doc) => {
-            if(doc.exists && doc.data().logo) {
-                defaultLogoUrl = doc.data().logo;
-                if(document.getElementById('view-about').classList.contains('active')) {
-                    document.getElementById('about-logo').src = defaultLogoUrl;
-                }
-                if(!document.getElementById('view-gamers').classList.contains('active') && !document.getElementById('view-trainee').classList.contains('active')) {
-                    document.getElementById('teamLogo').src = defaultLogoUrl;
-                    document.getElementById('teamLogo').style.display = "block";
-                }
-            }
-        });
-        db.collection("settings").doc("gamers").onSnapshot((doc) => {
-            if(doc.exists && doc.data().logo) {
-                gamersLogoUrl = doc.data().logo;
-                if(document.getElementById('view-gamers').classList.contains('active')) {
-                    document.getElementById('teamLogo').src = gamersLogoUrl;
-                    document.getElementById('teamLogo').style.display = "block";
-                }
-            }
-        });
-        db.collection("settings").doc("trainee").onSnapshot((doc) => {
-            if(doc.exists && doc.data().logo) {
-                traineeLogoUrl = doc.data().logo;
-                if(document.getElementById('view-trainee').classList.contains('active')) {
-                    document.getElementById('teamLogo').src = traineeLogoUrl;
-                    document.getElementById('teamLogo').style.display = "block";
-                }
-            }
-        });
-
-        // --- AUTH & DROPDOWN UI ---
         function updateAuthUI() {
-            const btn = document.getElementById('authBtn');
-            const dropdown = document.getElementById('userDropdown');
-            const adminBadge = document.getElementById('adminBadge');
-            
-            if (isAdmin) {
-                adminBadge.style.display = 'block';
-                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'block');
-            } else {
-                adminBadge.style.display = 'none';
-                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none');
-            }
+            const btn = document.getElementById('authBtn'); const dropdown = document.getElementById('userDropdown'); const adminBadge = document.getElementById('adminBadge');
+            if (isAdmin) { adminBadge.style.display = 'block'; document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'block'); } 
+            else { adminBadge.style.display = 'none'; document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none'); }
 
             if (currentUser) {
                 const myProfile = members.find(m => m.id === currentUser.uid);
                 const photoUrl = myProfile && myProfile.photo ? myProfile.photo : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 const safeName = escapeHtml(myProfile ? myProfile.name : 'Member');
-                
                 btn.innerHTML = `<img src="${photoUrl}" class="user-avatar-mini"> ${safeName} <i class="fas fa-caret-down"></i>`;
                 btn.onclick = toggleUserMenu; 
-                
-                let adminMenuHTML = "";
-                if (isRein) {
-                    if (isAdmin) {
-                        adminMenuHTML = `
-                            <button class="dropdown-item active-admin" onclick="toggleAdminMode()"><i class="fas fa-toggle-on"></i> Matikan Mode Dewa</button>
-                            <button class="dropdown-item gold" onclick="openModal('modalSuperAdmin')"><i class="fas fa-cogs"></i> Super Dashboard</button>
-                        `;
-                    } else {
-                        adminMenuHTML = `
-                            <button class="dropdown-item danger" onclick="toggleAdminMode()"><i class="fas fa-toggle-off"></i> Aktifkan Mode Dewa</button>
-                        `;
-                    }
-                }
-
-                dropdown.innerHTML = `
-                    <button class="dropdown-item" onclick="openProfile('${currentUser.uid}')"><i class="fas fa-user"></i> Profil Saya</button>
-                    <button class="dropdown-item" onclick="openModal('modalSettings')"><i class="fas fa-exchange-alt"></i> Settings (Migrasi)</button>
-                    ${adminMenuHTML}
-                    <button class="dropdown-item" onclick="logout()" style="border-top:1px solid #555;"><i class="fas fa-sign-out-alt"></i> Logout</button>
-                `;
+                let adminMenuHTML = isRein ? (isAdmin ? `<button class="dropdown-item active-admin" onclick="toggleAdminMode()"><i class="fas fa-toggle-on"></i> Matikan Mode Dewa</button><button class="dropdown-item gold" onclick="openModal('modalSuperAdmin')"><i class="fas fa-cogs"></i> Super Dashboard</button>` : `<button class="dropdown-item danger" onclick="toggleAdminMode()"><i class="fas fa-toggle-off"></i> Aktifkan Mode Dewa</button>`) : "";
+                dropdown.innerHTML = `<button class="dropdown-item" onclick="openProfile('${currentUser.uid}')"><i class="fas fa-user"></i> Profil Saya</button><button class="dropdown-item" onclick="openModal('modalSettings')"><i class="fas fa-exchange-alt"></i> Settings (Migrasi)</button>${adminMenuHTML}<button class="dropdown-item" onclick="logout()" style="border-top:1px solid #555;"><i class="fas fa-sign-out-alt"></i> Logout</button>`;
             } else {
-                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`;
-                btn.onclick = openAuthModal;
-                dropdown.innerHTML = ""; 
-                isAdmin = false;
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`; btn.onclick = openAuthModal; dropdown.innerHTML = ""; isAdmin = false;
             }
             renderAll();
         }
 
         async function toggleAdminMode() {
             document.getElementById('userDropdown').classList.remove('show');
-            if (isAdmin) {
-                isAdmin = false;
-                alert("Mode Dewa Dinonaktifkan.");
-                updateAuthUI();
-            } else {
-                let pass = prompt("Masukkan Password Mode Dewa:");
-                if(pass) {
-                    const hash = await sha256(pass);
-                    if(hash === ADMIN_HASH) {
-                        isAdmin = true;
-                        alert("Mode Dewa AKTIF!");
-                        updateAuthUI();
-                    } else {
-                        alert("Password Salah!");
-                    }
-                }
-            }
+            if (isAdmin) { isAdmin = false; alert("Mode Dewa Dinonaktifkan."); updateAuthUI(); } 
+            else { let pass = prompt("Masukkan Password Mode Dewa:"); if(pass) { const hash = await sha256(pass); if(hash === ADMIN_HASH) { isAdmin = true; alert("Mode Dewa AKTIF!"); updateAuthUI(); } else { alert("Password Salah!"); } } }
         }
 
         function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
@@ -893,16 +825,18 @@
             const saveContainer = document.getElementById('savePostModeBtn');
             const dropdown = document.getElementById('actionDropdown');
 
-            dropdown.classList.remove('show'); 
+            dropdown.classList.remove('show'); // Tutup dropdown
 
             if (isManagePostMode) {
+                // MASUK MODE EDIT
                 profileView.classList.add('delete-mode-active');
-                menuContainer.style.display = 'none'; 
-                saveContainer.style.display = 'block'; 
+                menuContainer.style.display = 'none'; // Sembunyikan pensil
+                saveContainer.style.display = 'block'; // Munculkan tombol Check/Save
             } else {
+                // KELUAR MODE EDIT
                 profileView.classList.remove('delete-mode-active');
-                menuContainer.style.display = 'block'; 
-                saveContainer.style.display = 'none'; 
+                menuContainer.style.display = 'block'; // Munculkan pensil
+                saveContainer.style.display = 'none'; // Sembunyikan tombol Check/Save
             }
         }
 
