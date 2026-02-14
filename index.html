@@ -700,8 +700,12 @@
     </div>
 
     <script>
-        let defaultLogoUrl = ""; let gamersLogoUrl = ""; let traineeLogoUrl = "";
+        // --- 0. KONFIGURASI GAMBAR & LOGO ---
+        let defaultLogoUrl = ""; 
+        let gamersLogoUrl = ""; 
+        let traineeLogoUrl = "";
         
+        // --- 1. INISIALISASI FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyDTzkh9BbSf1qpCiCDru3JibPi-G8nokfQ", 
             authDomain: "website-akang-cosplay.firebaseapp.com",
@@ -715,57 +719,163 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let members = []; let games = []; let currentTempRepertoire = [];
-        let isRein = false; let isAdmin = false; let currentUser = null; 
+        // --- DATA & STATE ---
+        let members = []; 
+        let games = []; 
+        let currentTempRepertoire = [];
+        let isRein = false; 
+        let isAdmin = false; 
+        let currentUser = null; 
         let isManagePostMode = false; // State untuk Mode Hapus Postingan
+        
+        // HASH PASSWORD ADMIN (Default: admin123)
         const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
         
-        let currentHistoryData = []; let currentHistoryDisplayCount = 0; const HISTORY_BATCH_SIZE = 5; 
-        let activeHistoryType = ''; let activeFilterCategory = 'all';
+        // --- LAZY LOAD & FILTER VARIABLES ---
+        let currentHistoryData = []; 
+        let currentHistoryDisplayCount = 0; 
+        const HISTORY_BATCH_SIZE = 5; 
+        let activeHistoryType = ''; 
+        let activeFilterCategory = 'all';
 
-        function escapeHtml(text) { if (!text) return ""; if (typeof text !== "string") return text; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
+        // --- SECURITY FUNCTION (ANTI-XSS) ---
+        function escapeHtml(text) {
+            if (!text) return "";
+            if (typeof text !== "string") return text;
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        }
 
+        // --- 2. LISTENER REAL-TIME FIREBASE ---
         auth.onAuthStateChanged((user) => {
             currentUser = user;
-            if(currentUser && currentUser.email === "reinkogeki@gmail.com") { isRein = true; } else { isRein = false; isAdmin = false; }
+            if(currentUser && currentUser.email === "reinkogeki@gmail.com") {
+                isRein = true;
+            } else {
+                isRein = false;
+                isAdmin = false; 
+            }
             updateAuthUI();
         });
 
+        // DEBOUNCE FUNCTION (Mencegah reload berkedip)
         let debounceTimer;
         db.collection("members").onSnapshot((snapshot) => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => { members = []; snapshot.forEach((doc) => { members.push(doc.data()); }); renderAll(); }, 500);
+            debounceTimer = setTimeout(() => {
+                members = [];
+                snapshot.forEach((doc) => { members.push(doc.data()); });
+                renderAll(); 
+            }, 500); 
         });
 
-        db.collection("games").onSnapshot((snapshot) => { games = []; snapshot.forEach((doc) => { games.push(doc.data()); }); if(document.getElementById('view-gamers').classList.contains('active')) renderGames(); });
-        
-        db.collection("settings").doc("global").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { defaultLogoUrl = doc.data().logo; if(document.getElementById('view-about').classList.contains('active')) { document.getElementById('about-logo').src = defaultLogoUrl; } if(!document.getElementById('view-gamers').classList.contains('active') && !document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = defaultLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
-        db.collection("settings").doc("gamers").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { gamersLogoUrl = doc.data().logo; if(document.getElementById('view-gamers').classList.contains('active')) { document.getElementById('teamLogo').src = gamersLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
-        db.collection("settings").doc("trainee").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { traineeLogoUrl = doc.data().logo; if(document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = traineeLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
+        db.collection("games").onSnapshot((snapshot) => {
+            games = [];
+            snapshot.forEach((doc) => { games.push(doc.data()); });
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGames();
+        });
 
+        // LOAD LOGO SETTINGS
+        db.collection("settings").doc("global").onSnapshot((doc) => {
+            if(doc.exists && doc.data().logo) {
+                defaultLogoUrl = doc.data().logo;
+                if(document.getElementById('view-about').classList.contains('active')) {
+                    document.getElementById('about-logo').src = defaultLogoUrl;
+                }
+                if(!document.getElementById('view-gamers').classList.contains('active') && !document.getElementById('view-trainee').classList.contains('active')) {
+                    document.getElementById('teamLogo').src = defaultLogoUrl;
+                    document.getElementById('teamLogo').style.display = "block";
+                }
+            }
+        });
+        db.collection("settings").doc("gamers").onSnapshot((doc) => {
+            if(doc.exists && doc.data().logo) {
+                gamersLogoUrl = doc.data().logo;
+                if(document.getElementById('view-gamers').classList.contains('active')) {
+                    document.getElementById('teamLogo').src = gamersLogoUrl;
+                    document.getElementById('teamLogo').style.display = "block";
+                }
+            }
+        });
+        db.collection("settings").doc("trainee").onSnapshot((doc) => {
+            if(doc.exists && doc.data().logo) {
+                traineeLogoUrl = doc.data().logo;
+                if(document.getElementById('view-trainee').classList.contains('active')) {
+                    document.getElementById('teamLogo').src = traineeLogoUrl;
+                    document.getElementById('teamLogo').style.display = "block";
+                }
+            }
+        });
+
+        // --- AUTH & DROPDOWN UI ---
         function updateAuthUI() {
-            const btn = document.getElementById('authBtn'); const dropdown = document.getElementById('userDropdown'); const adminBadge = document.getElementById('adminBadge');
-            if (isAdmin) { adminBadge.style.display = 'block'; document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'block'); } 
-            else { adminBadge.style.display = 'none'; document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none'); }
+            const btn = document.getElementById('authBtn');
+            const dropdown = document.getElementById('userDropdown');
+            const adminBadge = document.getElementById('adminBadge');
+            
+            if (isAdmin) {
+                adminBadge.style.display = 'block';
+                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'block');
+            } else {
+                adminBadge.style.display = 'none';
+                document.querySelectorAll('.admin-only').forEach(b => b.style.display = 'none');
+            }
 
             if (currentUser) {
                 const myProfile = members.find(m => m.id === currentUser.uid);
                 const photoUrl = myProfile && myProfile.photo ? myProfile.photo : 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
                 const safeName = escapeHtml(myProfile ? myProfile.name : 'Member');
+                
                 btn.innerHTML = `<img src="${photoUrl}" class="user-avatar-mini"> ${safeName} <i class="fas fa-caret-down"></i>`;
                 btn.onclick = toggleUserMenu; 
-                let adminMenuHTML = isRein ? (isAdmin ? `<button class="dropdown-item active-admin" onclick="toggleAdminMode()"><i class="fas fa-toggle-on"></i> Matikan Mode Dewa</button><button class="dropdown-item gold" onclick="openModal('modalSuperAdmin')"><i class="fas fa-cogs"></i> Super Dashboard</button>` : `<button class="dropdown-item danger" onclick="toggleAdminMode()"><i class="fas fa-toggle-off"></i> Aktifkan Mode Dewa</button>`) : "";
-                dropdown.innerHTML = `<button class="dropdown-item" onclick="openProfile('${currentUser.uid}')"><i class="fas fa-user"></i> Profil Saya</button><button class="dropdown-item" onclick="openModal('modalSettings')"><i class="fas fa-exchange-alt"></i> Settings (Migrasi)</button>${adminMenuHTML}<button class="dropdown-item" onclick="logout()" style="border-top:1px solid #555;"><i class="fas fa-sign-out-alt"></i> Logout</button>`;
+                
+                let adminMenuHTML = "";
+                if (isRein) {
+                    if (isAdmin) {
+                        adminMenuHTML = `
+                            <button class="dropdown-item active-admin" onclick="toggleAdminMode()"><i class="fas fa-toggle-on"></i> Matikan Mode Dewa</button>
+                            <button class="dropdown-item gold" onclick="openModal('modalSuperAdmin')"><i class="fas fa-cogs"></i> Super Dashboard</button>
+                        `;
+                    } else {
+                        adminMenuHTML = `
+                            <button class="dropdown-item danger" onclick="toggleAdminMode()"><i class="fas fa-toggle-off"></i> Aktifkan Mode Dewa</button>
+                        `;
+                    }
+                }
+
+                dropdown.innerHTML = `
+                    <button class="dropdown-item" onclick="openProfile('${currentUser.uid}')"><i class="fas fa-user"></i> Profil Saya</button>
+                    <button class="dropdown-item" onclick="openModal('modalSettings')"><i class="fas fa-exchange-alt"></i> Settings (Migrasi)</button>
+                    ${adminMenuHTML}
+                    <button class="dropdown-item" onclick="logout()" style="border-top:1px solid #555;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                `;
             } else {
-                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`; btn.onclick = openAuthModal; dropdown.innerHTML = ""; isAdmin = false;
+                btn.innerHTML = `<i class="fas fa-sign-in-alt"></i> Login`;
+                btn.onclick = openAuthModal;
+                dropdown.innerHTML = ""; 
+                isAdmin = false;
             }
             renderAll();
         }
 
         async function toggleAdminMode() {
             document.getElementById('userDropdown').classList.remove('show');
-            if (isAdmin) { isAdmin = false; alert("Mode Dewa Dinonaktifkan."); updateAuthUI(); } 
-            else { let pass = prompt("Masukkan Password Mode Dewa:"); if(pass) { const hash = await sha256(pass); if(hash === ADMIN_HASH) { isAdmin = true; alert("Mode Dewa AKTIF!"); updateAuthUI(); } else { alert("Password Salah!"); } } }
+            if (isAdmin) {
+                isAdmin = false;
+                alert("Mode Dewa Dinonaktifkan.");
+                updateAuthUI();
+            } else {
+                let pass = prompt("Masukkan Password Mode Dewa:");
+                if(pass) {
+                    const hash = await sha256(pass);
+                    if(hash === ADMIN_HASH) {
+                        isAdmin = true;
+                        alert("Mode Dewa AKTIF!");
+                        updateAuthUI();
+                    } else {
+                        alert("Password Salah!");
+                    }
+                }
+            }
         }
 
         function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
@@ -783,18 +893,16 @@
             const saveContainer = document.getElementById('savePostModeBtn');
             const dropdown = document.getElementById('actionDropdown');
 
-            dropdown.classList.remove('show'); // Tutup dropdown
+            dropdown.classList.remove('show'); 
 
             if (isManagePostMode) {
-                // MASUK MODE EDIT
                 profileView.classList.add('delete-mode-active');
-                menuContainer.style.display = 'none'; // Sembunyikan pensil
-                saveContainer.style.display = 'block'; // Munculkan tombol Check/Save
+                menuContainer.style.display = 'none'; 
+                saveContainer.style.display = 'block'; 
             } else {
-                // KELUAR MODE EDIT
                 profileView.classList.remove('delete-mode-active');
-                menuContainer.style.display = 'block'; // Munculkan pensil
-                saveContainer.style.display = 'none'; // Sembunyikan tombol Check/Save
+                menuContainer.style.display = 'block'; 
+                saveContainer.style.display = 'none'; 
             }
         }
 
@@ -829,6 +937,30 @@
                 title.innerText = "AKANG COSPLAY"; title.classList.remove('title-gamers'); estText.innerText = "EST. 2024"; if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
                 const btns = document.querySelectorAll('.nav-btn'); if(view === 'about') btns[0].classList.add('active');
                 if(view === 'official') { btns[1].classList.add('active'); activeFilterCategory = 'all'; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.filter-btn-overall').forEach(b => b.classList.add('active')); renderLeaderboard('official'); prepareHistoryData('official'); }
+            }
+        }
+
+        // --- FUNGSI RENDER TIM INTI (FIXED) ---
+        function renderAboutTeam() {
+            // Cari data REIN
+            const rein = members.find(m => m.name.toLowerCase().includes("rein"));
+            if(rein) {
+                if(rein.photo) document.getElementById('img-team-rein').src = rein.photo;
+                if(rein.role) document.getElementById('role-team-rein').innerText = rein.role;
+            }
+
+            // Cari data NABILLA
+            const nabilla = members.find(m => m.name.toLowerCase().includes("nabilla"));
+            if(nabilla) {
+                if(nabilla.photo) document.getElementById('img-team-nabilla').src = nabilla.photo;
+                if(nabilla.role) document.getElementById('role-team-nabilla').innerText = nabilla.role;
+            }
+
+            // Cari data IAN
+            const ian = members.find(m => m.name.toLowerCase().includes("ian"));
+            if(ian) {
+                if(ian.photo) document.getElementById('img-team-ian').src = ian.photo;
+                if(ian.role) document.getElementById('role-team-ian').innerText = ian.role;
             }
         }
 
@@ -997,6 +1129,13 @@
         function openModal(id) { document.getElementById(id).style.display = 'flex'; if(id==='modalSettings') renderMigrationList(); }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         document.addEventListener('contextmenu', e => e.preventDefault());
+        function renderAll() { 
+            renderAboutTeam(); // UPDATE FOTO TEAM di HOME
+            if(document.getElementById('view-official').classList.contains('active')) { renderLeaderboard('official'); prepareHistoryData('official'); }
+            if(document.getElementById('view-trainee').classList.contains('active')) { renderLeaderboard('trainee'); prepareHistoryData('trainee'); }
+            if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value); 
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers(); 
+        }
         window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
     </script>
 </body>
