@@ -164,6 +164,24 @@
         .nav-btn.active { background: var(--primary); color: white; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
         .nav-btn-gamers.active { background: var(--accent-blue); }
         .nav-btn-trainee.active { background: var(--sky-blue); color: #1e272e; } 
+        .nav-btn-events.active { background: var(--purple); color: white; }
+
+        /* --- SKELETON LOADING --- */
+        .skeleton {
+            background-color: #3d4655;
+            background-image: linear-gradient(90deg, #3d4655 0px, #4b5666 40px, #3d4655 80px);
+            background-size: 600px;
+            animation: shine-lines 2s infinite ease-out;
+            border-radius: 5px;
+        }
+        .skeleton-text { height: 12px; margin-bottom: 5px; width: 100%; }
+        .skeleton-avatar { width: 50px; height: 50px; border-radius: 50%; }
+        .skeleton-card { height: 80px; width: 100%; border-radius: 12px; margin-bottom: 15px; }
+
+        @keyframes shine-lines {
+            0% { background-position: -100px; }
+            40%, 100% { background-position: 140px; }
+        }
 
         /* --- VIEWS --- */
         .view-section { display: none; animation: fadeIn 0.4s; }
@@ -203,6 +221,28 @@
             width: 100%; aspect-ratio: 1 / 1; object-fit: cover; 
             border-radius: 5px; margin-top: 10px; border: 1px solid #555; display: block; cursor: zoom-in; 
         }
+
+        /* --- EVENT CARDS (NEW) --- */
+        .event-card {
+            background: var(--card-bg); border-radius: 12px; margin-bottom: 20px; overflow: hidden;
+            border: 1px solid #485460; transition: transform 0.2s;
+        }
+        .event-card:hover { border-color: var(--purple); transform: translateY(-3px); }
+        .event-poster { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
+        .event-body { padding: 15px; }
+        .event-date-badge { 
+            background: var(--purple); color: white; display: inline-block; 
+            padding: 3px 10px; border-radius: 5px; font-weight: bold; font-size: 0.8rem; margin-bottom: 10px;
+        }
+        .event-type { float: right; color: #aaa; font-size: 0.8rem; border: 1px solid #555; padding: 2px 8px; border-radius: 10px; }
+        .event-title { margin: 0 0 10px 0; color: white; font-size: 1.2rem; }
+        .event-detail-row { display: flex; gap: 10px; color: #ccc; font-size: 0.9rem; margin-bottom: 5px; }
+        .event-detail-row i { color: var(--sky-blue); width: 20px; text-align: center; }
+        
+        .event-prizes { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; margin-top: 15px; }
+        .prize-item { display: flex; justify-content: space-between; font-size: 0.85rem; padding: 3px 0; border-bottom: 1px solid #444; }
+        .prize-item:last-child { border: none; }
+        .prize-amount { color: var(--gold); font-weight: bold; }
 
         /* --- ABOUT US CARD --- */
         .about-team-card {
@@ -370,6 +410,7 @@
         .tag { background: #485460; padding: 5px 12px; border-radius: 15px; font-size: 0.85rem; color: white; display: inline-block; margin: 3px; }
         .social-badge { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color: white; padding: 6px 15px; border-radius: 20px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: bold; margin-bottom: 10px; transition: transform 0.2s; }
         .social-badge:hover { transform: scale(1.05); color: white; }
+        .social-badge.whatsapp { background: #25D366; }
 
         /* --- GALLERY --- */
         .gallery-section { margin-bottom: 25px; }
@@ -487,9 +528,10 @@
     <div class="container">
         <div class="nav-tabs">
             <button class="nav-btn active" onclick="switchView('about')"><i class="fas fa-home"></i> Home</button>
-            <button class="nav-btn" onclick="switchView('official')"><i class="fas fa-crown"></i> Member Official</button>
-            <button class="nav-btn nav-btn-trainee" onclick="switchView('trainee')"><i class="fas fa-user-graduate"></i> Akang Trainee</button>
+            <button class="nav-btn" onclick="switchView('official')"><i class="fas fa-crown"></i> Official</button>
+            <button class="nav-btn nav-btn-trainee" onclick="switchView('trainee')"><i class="fas fa-user-graduate"></i> Trainee</button>
             <button class="nav-btn nav-btn-gamers" onclick="switchView('gamers')"><i class="fas fa-gamepad"></i> Gamers</button>
+            <button class="nav-btn nav-btn-events" onclick="switchView('events')"><i class="fas fa-calendar-alt"></i> Events</button>
         </div>
 
         <div id="view-about" class="view-section active">
@@ -521,7 +563,7 @@
                         <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-team-ian">
                         <h4>Ian</h4>
                         <p id="role-team-ian">Cosplayer / Maker</p>
-                         <div id="ach-team-ian" style="color:var(--gold); font-size:0.8rem; margin-top:5px; font-weight:bold; display:none;"></div>
+                        <div id="ach-team-ian" style="color:var(--gold); font-size:0.8rem; margin-top:5px; font-weight:bold; display:none;"></div>
                     </div>
                 </div>
 
@@ -550,7 +592,8 @@
                     <div class="counter-label"><i class="fas fa-eye"></i> Total Visitors</div>
                     
                     <div id="geoList" class="geo-list">
-                        <p style="color:#777; font-size:0.8rem;">Loading demographic data...</p>
+                        <div class="skeleton" style="height:50px; width:100%; margin-bottom:10px;"></div>
+                        <div class="skeleton" style="height:50px; width:100%;"></div>
                     </div>
                 </div>
 
@@ -559,7 +602,10 @@
 
         <div id="view-official" class="view-section">
             <h3 style="color:var(--primary); text-align:center; border-bottom:2px solid var(--primary); padding-bottom:10px;">🏆 KLASEMEN OFFICIAL</h3>
-            <div id="leaderboard-official"></div>
+            <div id="leaderboard-official">
+                <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
             <div id="empty-lb-official" style="text-align: center; color: #777; margin-top: 20px; display: none;">Belum ada Official Member.</div>
             
             <h3 style="color:var(--gold); margin-top:40px; border-left: 4px solid var(--gold); padding-left: 10px;">📜 Riwayat Juara (Official)</h3>
@@ -586,14 +632,13 @@
                 <h3 style="margin-top:0; color:var(--sky-blue);">Apa itu Akang Trainee?</h3>
                 <p style="font-size: 0.9rem; line-height: 1.5; color: #ddd; margin-bottom: 0;">
                     Akang Trainee adalah ruang pengembangan bagi cosplayer yang ingin terus berkembang dan meningkatkan kualitas diri dalam dunia performa dan kompetisi. Di sini, kita berlatih bersama, saling memberi evaluasi, dan belajar melalui pengalaman secara bertahap.
-                    <br><br>
-                    Akang Trainee menjadi tempat untuk melihat sejauh mana komitmen dan konsistensi setiap individu dalam prosesnya. Bukan tentang siapa yang paling hebat, tetapi tentang siapa yang mau terus belajar dan memperbaiki diri.
-                    <br><br>
-                    Kami percaya bahwa performer yang baik lahir dari lingkungan yang saling mendukung dan mendorong satu sama lain untuk tumbuh.
                 </p>
             </div>
 
-            <div id="leaderboard-trainee"></div>
+            <div id="leaderboard-trainee">
+                 <div class="skeleton skeleton-card"></div>
+                <div class="skeleton skeleton-card"></div>
+            </div>
             <div id="empty-lb-trainee" style="text-align: center; color: #777; margin-top: 20px; display: none;">Belum ada Trainee.</div>
 
             <h3 style="color:var(--sky-blue); margin-top:40px; border-left: 4px solid var(--sky-blue); padding-left: 10px;">📜 Riwayat Juara (Trainee)</h3>
@@ -663,6 +708,22 @@
             </div>
         </div>
 
+        <div id="view-events" class="view-section">
+             <div style="text-align: center; margin-bottom: 20px;">
+                <h2 style="color: var(--purple); margin-bottom: 5px;"><i class="fas fa-calendar-alt"></i> JADWAL EVENT</h2>
+                <p style="color: #ccc; font-size: 0.9rem; margin-top: 0;">Agenda Deployment Pasukan Akang Cosplay</p>
+            </div>
+
+            <button class="admin-only" style="width: 100%; background: var(--green); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; display: none;" onclick="openModal('modalAddEvent')">
+                <i class="fas fa-plus-circle"></i> Tambah Jadwal Event
+            </button>
+
+            <div id="events-list">
+                <div class="skeleton skeleton-card" style="height: 200px;"></div>
+                <div class="skeleton skeleton-card" style="height: 200px;"></div>
+            </div>
+        </div>
+
         <div id="view-profile" class="view-section">
             <button style="background:none; border:none; color:#aaa; cursor:pointer; margin-bottom:10px;" onclick="switchView('official')">
                 <i class="fas fa-arrow-left"></i> Kembali
@@ -689,6 +750,7 @@
                 <br>
 
                 <a id="p-ig" href="#" target="_blank" class="social-badge" style="display:none;"><i class="fab fa-instagram"></i> Instagram</a>
+                <a id="p-wa" href="#" target="_blank" class="social-badge whatsapp" style="display:none;"><i class="fab fa-whatsapp"></i> WhatsApp</a>
                 
                 <p id="p-bio" style="font-style:italic; color:#ccc; margin-top: 5px;">Bio...</p>
                 <div style="display: flex; justify-content: center; gap: 20px; margin-top: 15px;">
@@ -750,6 +812,11 @@
                 <label>Password (Min 6 Karakter)</label><input type="password" id="regPass">
                 <hr style="border-color:#444; margin: 15px 0;">
                 <label>Nama Panggung / Cosplayer</label><input type="text" id="regName">
+                
+                <label>No. WhatsApp (Wajib)</label>
+                <input type="number" id="regWa" placeholder="08xxxxxxxx">
+                <small style="color:#777; display:block; margin-bottom:10px;">Untuk koordinasi admin. Privasi bisa diatur nanti.</small>
+
                 <label>Bio Singkat</label><textarea id="regBio" rows="2"></textarea>
                 <label>Link Instagram</label><input type="text" id="regIg" placeholder="@username">
                 <button class="btn-submit" style="background:var(--green);" onclick="registerUser()">Daftar & Buat Profil</button>
@@ -769,12 +836,54 @@
         </div>
     </div>
 
+    <div id="modalAddEvent" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--purple);"><i class="fas fa-calendar-plus"></i> Tambah Event Baru</h3>
+            
+            <label>Nama Event</label><input type="text" id="evtName">
+            <label>Tipe Event</label>
+            <select id="evtType">
+                <option value="Competition">Lomba Cosplay</option>
+                <option value="Gathering">Gathering / Meetup</option>
+                <option value="Performance">Guest Star Performance</option>
+            </select>
+            
+            <label>Tanggal & Waktu</label><input type="datetime-local" id="evtDate">
+            <label>Lokasi</label><input type="text" id="evtLoc">
+            <label>Juri (Pisahkan koma)</label><input type="text" id="evtJudges" placeholder="Rein, Nabilla, dll">
+            
+            <label>Poster Event</label><input type="file" id="evtPoster" accept="image/*">
+
+            <hr style="border-color:#444; margin:15px 0;">
+            <label style="color:var(--gold);">Kategori Juara & Hadiah</label>
+            <div id="evtPrizesContainer"></div>
+            <button onclick="addEventCategoryInput()" style="background:var(--dark); border:1px dashed #777; color:#aaa; width:100%; padding:8px; margin-bottom:15px;">+ Tambah Kategori</button>
+
+            <label>Rundown (Opsional)</label>
+            <textarea id="evtRundown" rows="4" placeholder="10:00 - Open Gate..."></textarea>
+
+            <button class="btn-submit" onclick="submitEvent()">Publish Event</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddEvent')">Batal</button>
+        </div>
+    </div>
+
     <div id="modalEdit" class="modal">
         <div class="modal-content">
             <h3>✏️ Edit Profil Saya</h3>
             <input type="hidden" id="editId">
             <label>Nama</label><input type="text" id="editName">
             <label>Jabatan / Role</label><input type="text" id="editRole" placeholder="Contoh: Founder / Cosplayer">
+            
+            <div style="background:rgba(37, 211, 102, 0.1); padding:10px; border-radius:8px; border:1px solid #25D366; margin-bottom:10px;">
+                <label style="color:#25D366;"><i class="fab fa-whatsapp"></i> Pengaturan WhatsApp</label>
+                <input type="number" id="editWa" placeholder="08xxxxxxxx">
+                <label style="font-size:0.8rem; color:#aaa;">Privasi Nomor:</label>
+                <select id="editWaPrivacy">
+                    <option value="hidden">🔒 Sembunyikan (Hanya Admin)</option>
+                    <option value="public">🌍 Tampilkan di Profil (Publik)</option>
+                </select>
+            </div>
+
             <div id="adminStatusControl" class="admin-only" style="background: rgba(255, 165, 2, 0.1); padding: 10px; border-radius: 8px; margin-bottom: 10px; border: 1px solid var(--gold);">
                 <label style="color: var(--gold);"><i class="fas fa-crown"></i> Status (Admin Only)</label>
                 <select id="editStatus"><option value="official">Official Member</option><option value="trainee">Akang Trainee</option></select>
@@ -917,7 +1026,7 @@
         const db = firebase.firestore();
         const auth = firebase.auth();
 
-        let members = []; let games = []; let currentTempRepertoire = [];
+        let members = []; let games = []; let events = []; let currentTempRepertoire = [];
         let isRein = false; let isAdmin = false; let currentUser = null; 
         let isManagePostMode = false; // State untuk Mode Hapus Postingan
         const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
@@ -941,6 +1050,13 @@
 
         db.collection("games").onSnapshot((snapshot) => { games = []; snapshot.forEach((doc) => { games.push(doc.data()); }); if(document.getElementById('view-gamers').classList.contains('active')) renderGames(); });
         
+        // NEW: Fetch Events
+        db.collection("events").orderBy('date', 'asc').onSnapshot((snapshot) => { 
+            events = []; 
+            snapshot.forEach((doc) => { events.push(doc.data()); });
+            if(document.getElementById('view-events').classList.contains('active')) renderEvents();
+        });
+
         db.collection("settings").doc("global").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { defaultLogoUrl = doc.data().logo; if(document.getElementById('view-about').classList.contains('active')) { document.getElementById('about-logo').src = defaultLogoUrl; } if(!document.getElementById('view-gamers').classList.contains('active') && !document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = defaultLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
         db.collection("settings").doc("gamers").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { gamersLogoUrl = doc.data().logo; if(document.getElementById('view-gamers').classList.contains('active')) { document.getElementById('teamLogo').src = gamersLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
         db.collection("settings").doc("trainee").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { traineeLogoUrl = doc.data().logo; if(document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = traineeLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
@@ -1049,7 +1165,40 @@
         function switchAuthTab(tab) { document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active')); if(tab === 'login') { document.querySelector('.auth-tab-btn:first-child').classList.add('active'); document.getElementById('formLogin').classList.remove('hidden'); document.getElementById('formRegister').classList.add('hidden'); } else { document.querySelector('.auth-tab-btn:last-child').classList.add('active'); document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden'); } }
         function login() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value; const err = document.getElementById('loginError'); if(!email || !pass) { err.innerText = "Isi semua!"; return; } auth.signInWithEmailAndPassword(email, pass).then(() => { closeModal('modalAuth'); }).catch((error) => { err.innerText = error.message; }); }
         function logout() { auth.signOut().then(() => { switchView('official'); }); }
-        function registerUser() { const email = document.getElementById('regEmail').value; const pass = document.getElementById('regPass').value; const name = document.getElementById('regName').value; const bio = document.getElementById('regBio').value; const ig = document.getElementById('regIg').value; const err = document.getElementById('regError'); if(!email || !pass || !name) { err.innerText = "Isi semua!"; return; } if(pass.length < 6) { err.innerText = "Min 6 karakter"; return; } auth.createUserWithEmailAndPassword(email, pass).then((userCredential) => { const user = userCredential.user; const newMember = { id: user.uid, name: name, bio: bio, ig: ig, photo: null, history: [], repertoire: [], gallery: [], status: 'trainee' }; db.collection("members").doc(user.uid).set(newMember).then(() => { closeModal('modalAuth'); }).catch(e => { err.innerText = e.message; }); }).catch((error) => { err.innerText = error.message; }); }
+        
+        // NEW: REGISTER WITH WHATSAPP
+        function registerUser() { 
+            const email = document.getElementById('regEmail').value; 
+            const pass = document.getElementById('regPass').value; 
+            const name = document.getElementById('regName').value; 
+            const wa = document.getElementById('regWa').value; 
+            const bio = document.getElementById('regBio').value; 
+            const ig = document.getElementById('regIg').value; 
+            const err = document.getElementById('regError'); 
+            
+            if(!email || !pass || !name || !wa) { err.innerText = "Isi semua, termasuk WhatsApp!"; return; } 
+            if(pass.length < 6) { err.innerText = "Min 6 karakter"; return; } 
+            
+            auth.createUserWithEmailAndPassword(email, pass).then((userCredential) => { 
+                const user = userCredential.user; 
+                const newMember = { 
+                    id: user.uid, 
+                    name: name, 
+                    bio: bio, 
+                    ig: ig, 
+                    wa: wa,             // Save WA
+                    waPrivacy: 'hidden', // Default hidden
+                    photo: null, 
+                    history: [], 
+                    repertoire: [], 
+                    gallery: [], 
+                    status: 'trainee' 
+                }; 
+                db.collection("members").doc(user.uid).set(newMember).then(() => { 
+                    closeModal('modalAuth'); 
+                }).catch(e => { err.innerText = e.message; }); 
+            }).catch((error) => { err.innerText = error.message; }); 
+        }
 
         function renderMigrationList() { const container = document.getElementById('migrationList'); container.innerHTML = ""; const candidates = members.filter(m => currentUser && m.id !== currentUser.uid); if(candidates.length === 0) { container.innerHTML = "Kosong."; return; } candidates.forEach(m => { container.innerHTML += `<div style="margin-bottom:10px;"><strong>${escapeHtml(m.name)}</strong> (${m.history ? m.history.length : 0} Wins) <button onclick="executeMigration('${m.id}')">Ambil</button></div>`; }); }
         async function executeMigration(oldId) { if(!confirm("Timpa akun ini dengan data lama?")) return; const user = firebase.auth().currentUser; try { const docLama = await db.collection('members').doc(oldId.toString()).get(); const dataLama = docLama.data(); const dataBaru = { ...dataLama, id: user.uid }; await db.collection('members').doc(user.uid).set(dataBaru); await db.collection('members').doc(oldId.toString()).delete(); location.reload(); } catch (e) { alert("Gagal: " + e.message); } }
@@ -1063,6 +1212,9 @@
             const header = document.getElementById('mainHeader'); const title = document.getElementById('headerTitle'); const estText = document.getElementById('headerEst'); const logo = document.getElementById('teamLogo');
             header.classList.remove('gamers-mode'); header.classList.remove('trainee-mode');
 
+            // Reset Tabs
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+
             if(view === 'gamers') {
                 document.querySelector('.nav-btn-gamers').classList.add('active'); header.classList.add('gamers-mode'); title.innerText = "AKANG GAMERS"; title.classList.add('title-gamers'); estText.innerText = "EST. 2026";
                 if(gamersLogoUrl) { logo.src = gamersLogoUrl; logo.style.display = "block"; } else if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
@@ -1072,23 +1224,26 @@
                 if(traineeLogoUrl) { logo.src = traineeLogoUrl; logo.style.display = "block"; } else if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
                 activeFilterCategory = 'all'; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.filter-btn-overall').forEach(b => b.classList.add('active'));
                 renderLeaderboard('trainee'); prepareHistoryData('trainee'); 
+            } else if (view === 'events') {
+                document.querySelector('.nav-btn-events').classList.add('active');
+                title.innerText = "AKANG EVENTS"; estText.innerText = "JADWAL DEPLOY";
+                if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
+                renderEvents();
             } else {
                 title.innerText = "AKANG COSPLAY"; title.classList.remove('title-gamers'); estText.innerText = "EST. 2024"; if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
-                const btns = document.querySelectorAll('.nav-btn'); if(view === 'about') btns[0].classList.add('active');
-                if(view === 'official') { btns[1].classList.add('active'); activeFilterCategory = 'all'; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.filter-btn-overall').forEach(b => b.classList.add('active')); renderLeaderboard('official'); prepareHistoryData('official'); }
+                if(view === 'about') document.querySelector('.nav-btn:nth-child(1)').classList.add('active');
+                if(view === 'official') { document.querySelector('.nav-btn:nth-child(2)').classList.add('active'); activeFilterCategory = 'all'; document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.filter-btn-overall').forEach(b => b.classList.add('active')); renderLeaderboard('official'); prepareHistoryData('official'); }
             }
         }
 
         // --- FUNGSI RENDER TIM INTI (UPDATED: Achievement Highlight) ---
         function renderAboutTeam() {
-            // Helper function to render data
             const setMemberData = (idPrefix, nameKey) => {
                 const m = members.find(m => m.name.toLowerCase().includes(nameKey));
                 if(m) {
                     if(m.photo) document.getElementById(`img-team-${idPrefix}`).src = m.photo;
                     if(m.role) document.getElementById(`role-team-${idPrefix}`).innerText = m.role;
                     
-                    // RENDER ACHIEVEMENT
                     const achDiv = document.getElementById(`ach-team-${idPrefix}`);
                     if(achDiv) {
                         if(m.topAchievement) {
@@ -1100,7 +1255,6 @@
                     }
                 }
             };
-
             setMemberData('rein', 'rein');
             setMemberData('nabilla', 'nabilla');
             setMemberData('ian', 'ian');
@@ -1110,71 +1264,30 @@
         async function downloadBackupData() { const backup = { members: members, games: games, version: "1.0", date: new Date().toISOString() }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const node = document.createElement('a'); node.href = dataStr; node.download = "backup_" + Date.now() + ".json"; document.body.appendChild(node); node.click(); node.remove(); }
         function restoreToFirebase() { const file = document.getElementById('restoreFile').files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); if(!confirm(`Restore ${data.members.length} member?`)) return; for (const m of data.members) { await db.collection("members").doc(m.id).set(m); } location.reload(); } catch(err) { alert("Gagal: " + err.message); } }; reader.readAsText(file); }
         
-        // --- FUNGSI UPDATE LOGO DENGAN KOMPRESI OTOMATIS (NEW) ---
+        // --- FUNGSI UPDATE LOGO ---
         function compressAndSaveLogo(inputId, collectionId) {
             const file = document.getElementById(inputId).files[0];
-            if (!file) {
-                alert("Pilih gambar dulu!");
-                return;
-            }
-
+            if (!file) { alert("Pilih gambar dulu!"); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
-                const img = new Image();
-                img.src = e.target.result;
-                
+                const img = new Image(); img.src = e.target.result;
                 img.onload = function() {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    
-                    // Kita set ukuran maksimal 300px (Sangat cukup untuk logo & ringan)
-                    const MAX_SIZE = 300; 
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_SIZE) {
-                            height *= MAX_SIZE / width;
-                            width = MAX_SIZE;
-                        }
-                    } else {
-                        if (height > MAX_SIZE) {
-                            width *= MAX_SIZE / height;
-                            height = MAX_SIZE;
-                        }
-                    }
-
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-
-                    // Kompres jadi JPEG kualitas 70% agar muat di database
+                    const canvas = document.createElement('canvas'); const ctx = canvas.getContext('2d');
+                    const MAX_SIZE = 300; let width = img.width; let height = img.height;
+                    if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } } else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+                    canvas.width = width; canvas.height = height; ctx.drawImage(img, 0, 0, width, height);
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
-
-                    // Proses Simpan ke Database
-                    db.collection("settings").doc(collectionId).set({ logo: dataUrl })
-                        .then(() => {
+                    db.collection("settings").doc(collectionId).set({ logo: dataUrl }).then(() => {
                             alert("SUKSES! Logo berhasil diganti.");
-                            
-                            // Update tampilan langsung tanpa refresh
                             const logoImg = document.getElementById('teamLogo');
-                            
-                            // Cek apakah user sedang di halaman yang sesuai dengan logo yang diganti
                             const viewOfficial = document.getElementById('view-official').classList.contains('active');
                             const viewGamers = document.getElementById('view-gamers').classList.contains('active');
                             const viewTrainee = document.getElementById('view-trainee').classList.contains('active');
-
                             if (collectionId === 'global' && viewOfficial) logoImg.src = dataUrl;
                             if (collectionId === 'gamers' && viewGamers) logoImg.src = dataUrl;
                             if (collectionId === 'trainee' && viewTrainee) logoImg.src = dataUrl;
-                            
-                            // Reset input file
                             document.getElementById(inputId).value = "";
-                        })
-                        .catch((error) => {
-                            alert("Gagal menyimpan: " + error.message);
-                            console.error(error);
-                        });
+                    }).catch((error) => { alert("Gagal menyimpan: " + error.message); });
                 }
             };
             reader.readAsDataURL(file);
@@ -1188,6 +1301,120 @@
         function renderGames() { const container = document.getElementById('game-catalog-list'); container.innerHTML = ""; games.forEach(g => { let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>` : ``; container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}"><div class="game-title">${escapeHtml(g.name)}</div></div>`; }); if(isAdmin) document.querySelectorAll('.show-admin').forEach(b => b.style.display = 'block'); }
         function submitAddGame() { const name = document.getElementById('addGameName').value; const file = document.getElementById('addGameImage').files[0]; if(!name) return; const save = (img) => { const ng = { id: Date.now(), name: name, image: img || "" }; db.collection("games").doc(ng.id.toString()).set(ng).then(() => { closeModal('modalAddGame'); }); }; if(file) { const r = new FileReader(); r.onload = (e) => save(e.target.result); r.readAsDataURL(file); } else save(null); }
         function deleteGame(id) { if(confirm("Hapus game?")) db.collection("games").doc(id.toString()).delete(); }
+        
+        // --- NEW: EVENT FUNCTIONS ---
+        function renderEvents() {
+            const list = document.getElementById('events-list');
+            list.innerHTML = "";
+            if(events.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777;'>Belum ada event terjadwal.</p>"; return; }
+            
+            // Sort events: Upcoming first, then past
+            const now = new Date();
+            const upcoming = events.filter(e => new Date(e.date) >= now);
+            const past = events.filter(e => new Date(e.date) < now);
+            const sortedEvents = [...upcoming, ...past];
+
+            sortedEvents.forEach(e => {
+                const dateObj = new Date(e.date);
+                const dateStr = dateObj.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+                const timeStr = dateObj.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                
+                let prizesHTML = "";
+                if(e.prizes && e.prizes.length > 0) {
+                    e.prizes.forEach(p => {
+                         prizesHTML += `<div class="prize-item"><span>${escapeHtml(p.name)}</span><span class="prize-amount">${escapeHtml(p.amount)}</span></div>`;
+                    });
+                }
+                
+                // Admin Delete Button
+                const delBtn = isAdmin ? `<button onclick="deleteEvent('${e.id}')" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-trash"></i></button>` : '';
+
+                list.innerHTML += `
+                    <div class="event-card">
+                        <div style="position:relative;">
+                            <img src="${e.poster || 'https://via.placeholder.com/800x450?text=No+Poster'}" class="event-poster" onclick="openLightbox('${e.poster}')">
+                            ${delBtn}
+                        </div>
+                        <div class="event-body">
+                            <span class="event-date-badge"><i class="far fa-clock"></i> ${dateStr} - ${timeStr}</span>
+                            <span class="event-type">${escapeHtml(e.type)}</span>
+                            <h3 class="event-title">${escapeHtml(e.name)}</h3>
+                            
+                            <div class="event-detail-row"><i class="fas fa-map-marker-alt"></i> ${escapeHtml(e.location)}</div>
+                            <div class="event-detail-row"><i class="fas fa-gavel"></i> Juri: ${escapeHtml(e.judges)}</div>
+                            
+                            ${prizesHTML ? `<div class="event-prizes"><h4 style="margin:0 0 5px 0; font-size:0.9rem; color:#aaa;">🏆 Kategori & Hadiah</h4>${prizesHTML}</div>` : ''}
+                            
+                            ${e.rundown ? `<div style="margin-top:15px; padding-top:10px; border-top:1px dashed #555; font-size:0.85rem; color:#ddd; white-space: pre-wrap;"><strong>Rundown:</strong><br>${escapeHtml(e.rundown)}</div>` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        let tempEventPrizes = [];
+        function addEventCategoryInput() {
+            const container = document.getElementById('evtPrizesContainer');
+            const id = Date.now();
+            const html = `
+                <div id="prize-${id}" style="display:flex; gap:5px; margin-bottom:5px;">
+                    <input type="text" placeholder="Kategori (mis: Juara 1)" class="prize-name-input">
+                    <input type="text" placeholder="Hadiah (mis: 1 Juta)" class="prize-amount-input">
+                    <button onclick="document.getElementById('prize-${id}').remove()" style="background:red; color:white; border:none; border-radius:5px; width:30px;"><i class="fas fa-times"></i></button>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function submitEvent() {
+            const name = document.getElementById('evtName').value;
+            const type = document.getElementById('evtType').value;
+            const date = document.getElementById('evtDate').value;
+            const loc = document.getElementById('evtLoc').value;
+            const judges = document.getElementById('evtJudges').value;
+            const rundown = document.getElementById('evtRundown').value;
+            const file = document.getElementById('evtPoster').files[0];
+
+            // Collect Prizes
+            const prizeDivs = document.querySelectorAll('#evtPrizesContainer > div');
+            const prizes = [];
+            prizeDivs.forEach(div => {
+                const n = div.querySelector('.prize-name-input').value;
+                const a = div.querySelector('.prize-amount-input').value;
+                if(n && a) prizes.push({name: n, amount: a});
+            });
+
+            if(!name || !date || !loc) { alert("Isi data utama!"); return; }
+
+            const save = (url) => {
+                const newEvt = {
+                    id: Date.now().toString(),
+                    name, type, date, location: loc, judges, rundown, prizes,
+                    poster: url || null
+                };
+                db.collection("events").doc(newEvt.id).set(newEvt).then(() => {
+                    closeModal('modalAddEvent');
+                    // Reset form
+                    document.getElementById('evtName').value = "";
+                    document.getElementById('evtPrizesContainer').innerHTML = "";
+                });
+            };
+
+            if(file) {
+                const r = new FileReader(); r.onload = (e) => {
+                    // Resize Logic
+                    const i = new Image(); i.src = e.target.result;
+                    i.onload = () => {
+                        const c = document.createElement('canvas'); const x = c.getContext('2d');
+                        const M = 600; let w=i.width,h=i.height; 
+                        if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} 
+                        c.width=w; c.height=h; x.drawImage(i,0,0,w,h);
+                        save(c.toDataURL('image/jpeg', 0.7));
+                    }
+                }; r.readAsDataURL(file);
+            } else save(null);
+        }
+        function deleteEvent(id) { if(confirm("Hapus event ini?")) db.collection("events").doc(id).delete(); }
         
         function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('show'); }
         function openBotModal() { document.getElementById('chatInput').value = ""; document.getElementById('chatArea').innerHTML = `<div class="chat-msg bot"><div class="bubble bot">Halo! Saya Akang Bot 🤖.<br>Mau tanya apa?</div></div>`; renderBotOptions(); openModal('modalBot'); }
@@ -1221,7 +1448,6 @@
                 let rankT = i.rank === 'Best' ? escapeHtml(i.bestTitle) : 'Juara ' + escapeHtml(i.rank);
                 let img = i.proof ? `<img src="${i.proof}" class="feed-img-proof" onclick="openLightbox('${i.proof}')">` : '';
                 
-                // --- FIX: TAMPILKAN JURI DI LIST UTAMA (WARNA GOLD) ---
                 let judgesInfo = i.judges ? `<div style="font-size:0.85rem; color:var(--gold); margin-top:3px;"><i class="fas fa-gavel"></i> Juri: ${escapeHtml(i.judges)}</div>` : '';
 
                 container.insertAdjacentHTML('beforeend', `
@@ -1249,7 +1475,10 @@
         scrollObs.observe(document.getElementById('scroll-trigger-official')); scrollObs.observe(document.getElementById('scroll-trigger-trainee'));
 
         function renderLeaderboard(type) { 
-            const list = document.getElementById(type === 'official' ? 'leaderboard-official' : 'leaderboard-trainee'); list.innerHTML = ""; 
+            const list = document.getElementById(type === 'official' ? 'leaderboard-official' : 'leaderboard-trainee'); 
+            // Clear content (remove skeleton if exist)
+            list.innerHTML = ""; 
+            
             let fMembers = members.filter(m => (m.status || 'official') === type);
             if(fMembers.length === 0) { document.getElementById(type === 'official' ? 'empty-lb-official' : 'empty-lb-trainee').style.display = 'block'; return; } 
             document.getElementById(type === 'official' ? 'empty-lb-official' : 'empty-lb-trainee').style.display = 'none';
@@ -1267,18 +1496,10 @@
             const delMemBtn = document.getElementById('btnDelMemberMenu');
             const statusBadge = document.getElementById('p-status-badge');
             
-            // RESET DELETE MODE SAAT BUKA PROFIL BARU
-            isManagePostMode = true; toggleManagePostsMode(); // Force reset to normal mode
+            isManagePostMode = true; toggleManagePostsMode(); 
 
             let isOwner = (currentUser && currentUser.uid === m.id);
-            // SHOW ACTION MENU (PENCIL) IF OWNER OR ADMIN
-            if (isOwner || isAdmin) {
-                menuBtn.style.display = "block";
-            } else {
-                menuBtn.style.display = "none";
-            }
-
-            // DELETE MEMBER BUTTON VISIBILITY (ADMIN ONLY)
+            if (isOwner || isAdmin) { menuBtn.style.display = "block"; } else { menuBtn.style.display = "none"; }
             if (isAdmin) delMemBtn.style.display = "block"; else delMemBtn.style.display = "none";
 
             const st = m.status || 'official';
@@ -1286,9 +1507,13 @@
             statusBadge.style.color = st === 'official' ? "var(--primary)" : "var(--sky-blue)";
             statusBadge.style.borderColor = st === 'official' ? "var(--primary)" : "var(--sky-blue)";
 
+            // EDIT FORM PREFILL
             document.getElementById('editId').value = m.id; document.getElementById('editName').value = m.name; document.getElementById('editBio').value = m.bio || ""; document.getElementById('editIg').value = m.ig || ""; document.getElementById('editRole').value = m.role || ""; document.getElementById('editStatus').value = st;
             
-            // --- UPDATED: PREFILL TOP ACHIEVEMENT (Only visible to Admin) ---
+            // PREFILL WA
+            document.getElementById('editWa').value = m.wa || "";
+            document.getElementById('editWaPrivacy').value = m.waPrivacy || "hidden";
+
             if(isAdmin && document.getElementById('editTopAchievement')) {
                 document.getElementById('editTopAchievement').value = m.topAchievement || "";
             }
@@ -1298,9 +1523,33 @@
             document.getElementById('p-stat-comp').innerText = m.history ? m.history.filter(h => h.category === 'Cosplay Competition' || h.category === 'Coscom').length : 0;
             const igBadge = document.getElementById('p-ig'); if(m.ig) { igBadge.href = m.ig.startsWith('http') ? m.ig : 'https://instagram.com/' + m.ig.replace('@',''); igBadge.style.display = 'inline-flex'; } else igBadge.style.display = 'none';
 
+            // --- WA BUTTON LOGIC ---
+            const waBtn = document.getElementById('p-wa');
+            let showWa = false;
+            if (m.waPrivacy === 'public') showWa = true;
+            if (isAdmin || isOwner) showWa = true; // Admin/Owner always see
+
+            if (m.wa && showWa) {
+                // Formatting 08 -> 628
+                let num = m.wa.toString();
+                if(num.startsWith('0')) num = '62' + num.substring(1);
+                waBtn.href = `https://wa.me/${num}`;
+                waBtn.style.display = 'inline-flex';
+                
+                // Visual cue for hidden but visible to admin
+                if(m.waPrivacy === 'hidden' && (isAdmin || isOwner)) {
+                    waBtn.innerHTML = '<i class="fas fa-lock"></i> WhatsApp (Hidden)';
+                    waBtn.style.background = '#555';
+                } else {
+                    waBtn.innerHTML = '<i class="fab fa-whatsapp"></i> WhatsApp';
+                    waBtn.style.background = '#25D366';
+                }
+            } else {
+                waBtn.style.display = 'none';
+            }
+
             const galGrid = document.getElementById('p-gallery-grid'); galGrid.innerHTML = "";
             if(m.gallery) m.gallery.forEach((src, i) => { 
-                // DELETE BUTTON (Trash) - hidden by default via CSS, shown in Delete Mode
                 galGrid.innerHTML += `<div class="gallery-item"><button class="btn-del-photo" onclick="deleteGalleryPhoto('${m.id}', ${i})"><i class="fas fa-trash"></i></button><img src="${src}" class="gallery-img" onclick="openLightbox('${src}')"></div>`; 
             });
 
@@ -1310,12 +1559,8 @@
             if(m.history) {
                 [...m.history].sort((a,b)=>new Date(b.date)-new Date(a.date)).forEach(h => {
                     let rankT = h.rank === 'Best' ? escapeHtml(h.bestTitle) : 'Juara ' + h.rank;
-                    
-                    // --- FIX: TAMPILKAN JURI DI HISTORY PROFIL (WARNA GOLD) ---
                     let judgesInfo = h.judges ? `<br><small style="color:var(--gold);"><i class="fas fa-gavel"></i> ${escapeHtml(h.judges)}</small>` : '';
 
-                    // DELETE BUTTON (Trash) for History - Only visible in Delete Mode
-                    // ADDED: Edit Button (Pencil) - Visible in Delete/Edit Mode
                     histDiv.innerHTML += `
                     <div style="background:#3d4655; padding:10px; margin-bottom:10px; border-radius:5px; border-left:3px solid ${h.category==='Coswalk'?'var(--accent-blue)':'var(--gold)'}; display:flex; justify-content:space-between; align-items:center;">
                         <div>
@@ -1341,15 +1586,7 @@
         document.getElementById('lightbox').addEventListener('click', function(e) { if(e.target === this) closeLightbox(); });
 
         function openModalWin() { 
-            // Reset Form for New Entry
-            document.getElementById('winEditId').value = ""; 
-            document.getElementById('winEvent').value = "";
-            document.getElementById('winChar').value = "";
-            document.getElementById('winDate').value = "";
-            document.getElementById('winJudges').value = "";
-            document.getElementById('winBestTitle').value = "";
-            document.getElementById('winMember').disabled = false;
-            document.getElementById('btnSaveWin').innerText = "Simpan Data";
+            document.getElementById('winEditId').value = ""; document.getElementById('winEvent').value = ""; document.getElementById('winChar').value = ""; document.getElementById('winDate').value = ""; document.getElementById('winJudges').value = ""; document.getElementById('winBestTitle').value = ""; document.getElementById('winMember').disabled = false; document.getElementById('btnSaveWin').innerText = "Simpan Data";
 
             const sel = document.getElementById('winMember'); sel.innerHTML = ""; 
             if(isAdmin) { members.forEach(m => sel.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)}</option>`); } 
@@ -1358,38 +1595,13 @@
             document.getElementById('divBestTitle').classList.add('hidden'); openModal('modalWin'); 
         }
         
-        // --- NEW: FUNCTION TO OPEN EDIT HISTORY MODAL ---
         function openEditHistory(mid, hid) {
-             const m = members.find(x => x.id == mid);
-             const h = m.history.find(x => x.id == hid);
-             
-             if (!h) return;
-
-             // Populate Members Select first
-             const sel = document.getElementById('winMember'); sel.innerHTML = "";
-             members.forEach(mem => sel.innerHTML += `<option value="${mem.id}">${escapeHtml(mem.name)}</option>`);
-             
-             // Fill Data
-             document.getElementById('winEditId').value = hid; // Set Hidden ID
-             document.getElementById('winMember').value = mid;
-             document.getElementById('winMember').disabled = true; // Lock Member Name
-             
-             document.getElementById('winEvent').value = h.event;
-             document.getElementById('winCat').value = h.category;
-             document.getElementById('winChar').value = h.char;
-             document.getElementById('winDate').value = h.date.split('T')[0]; // Format Date
-             document.getElementById('winRank').value = h.rank;
-             document.getElementById('winJudges').value = h.judges || "";
-             
-             if (h.rank === 'Best') {
-                 document.getElementById('divBestTitle').classList.remove('hidden');
-                 document.getElementById('winBestTitle').value = h.bestTitle;
-             } else {
-                 document.getElementById('divBestTitle').classList.add('hidden');
-             }
-
-             document.getElementById('btnSaveWin').innerText = "Update Data";
-             openModal('modalWin');
+             const m = members.find(x => x.id == mid); const h = m.history.find(x => x.id == hid); if (!h) return;
+             const sel = document.getElementById('winMember'); sel.innerHTML = ""; members.forEach(mem => sel.innerHTML += `<option value="${mem.id}">${escapeHtml(mem.name)}</option>`);
+             document.getElementById('winEditId').value = hid; document.getElementById('winMember').value = mid; document.getElementById('winMember').disabled = true;
+             document.getElementById('winEvent').value = h.event; document.getElementById('winCat').value = h.category; document.getElementById('winChar').value = h.char; document.getElementById('winDate').value = h.date.split('T')[0]; document.getElementById('winRank').value = h.rank; document.getElementById('winJudges').value = h.judges || "";
+             if (h.rank === 'Best') { document.getElementById('divBestTitle').classList.remove('hidden'); document.getElementById('winBestTitle').value = h.bestTitle; } else { document.getElementById('divBestTitle').classList.add('hidden'); }
+             document.getElementById('btnSaveWin').innerText = "Update Data"; openModal('modalWin');
         }
 
         function openEditModal() { const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); currentTempRepertoire = m.repertoire ? [...m.repertoire] : []; renderEditRepertoire(); openModal('modalEdit'); }
@@ -1398,12 +1610,13 @@
             const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); const file = document.getElementById('editPhoto').files[0];
             const finalize = (p) => { 
                 m.name = document.getElementById('editName').value; m.bio = document.getElementById('editBio').value; m.ig = document.getElementById('editIg').value; m.role = document.getElementById('editRole').value; 
-                if(isAdmin) m.status = document.getElementById('editStatus').value;
                 
-                // --- UPDATED: SAVE ACHIEVEMENT (Admin Only) ---
-                if(isAdmin) {
-                     m.topAchievement = document.getElementById('editTopAchievement').value;
-                }
+                // SAVE WA
+                m.wa = document.getElementById('editWa').value;
+                m.waPrivacy = document.getElementById('editWaPrivacy').value;
+
+                if(isAdmin) m.status = document.getElementById('editStatus').value;
+                if(isAdmin) m.topAchievement = document.getElementById('editTopAchievement').value;
 
                 if(p) m.photo = p; m.repertoire = [...currentTempRepertoire]; db.collection("members").doc(id).set(m).then(() => { closeModal('modalEdit'); openProfile(id); });
             };
@@ -1411,10 +1624,7 @@
         }
 
         function submitWin() {
-            const id = document.getElementById('winMember').value; 
-            const editId = document.getElementById('winEditId').value; // Check Hidden ID
-            
-            // SECURITY CHECK: Only Admin or Self
+            const id = document.getElementById('winMember').value; const editId = document.getElementById('winEditId').value;
             if (!isAdmin && (!currentUser || currentUser.uid !== id)) { alert("Hanya bisa input punya sendiri!"); return; }
             
             const event = document.getElementById('winEvent').value; const cat = document.getElementById('winCat').value; const char = document.getElementById('winChar').value; const rank = document.getElementById('winRank').value; const proof = document.getElementById('winProof').files[0];
@@ -1423,31 +1633,13 @@
             const save = (p) => { 
                 const m = members.find(x=>x.id==id); 
                 if(!m.history) m.history=[]; 
-                
                 if (editId) {
-                    // --- UPDATE EXISTING ENTRY ---
                     const idx = m.history.findIndex(h => h.id == editId);
-                    if (idx > -1) {
-                        m.history[idx].event = event;
-                        m.history[idx].category = cat;
-                        m.history[idx].char = char;
-                        m.history[idx].rank = rank;
-                        m.history[idx].judges = document.getElementById('winJudges').value;
-                        m.history[idx].bestTitle = (rank==='Best'?document.getElementById('winBestTitle').value:null);
-                        m.history[idx].date = document.getElementById('winDate').value || new Date().toISOString();
-                        if (p) m.history[idx].proof = p; // Only update photo if new one uploaded
-                    }
-                } else {
-                    // --- CREATE NEW ENTRY ---
-                    m.history.unshift({id: Date.now()+Math.random().toString(), event, category: cat, char, rank, judges: document.getElementById('winJudges').value, bestTitle: (rank==='Best'?document.getElementById('winBestTitle').value:null), proof: p, date: document.getElementById('winDate').value||new Date().toISOString() }); 
-                }
-
-                if(!m.repertoire) m.repertoire=[]; 
-                if(!m.repertoire.includes(char)) m.repertoire.push(char); 
-                
+                    if (idx > -1) { m.history[idx].event = event; m.history[idx].category = cat; m.history[idx].char = char; m.history[idx].rank = rank; m.history[idx].judges = document.getElementById('winJudges').value; m.history[idx].bestTitle = (rank==='Best'?document.getElementById('winBestTitle').value:null); m.history[idx].date = document.getElementById('winDate').value || new Date().toISOString(); if (p) m.history[idx].proof = p; }
+                } else { m.history.unshift({id: Date.now()+Math.random().toString(), event, category: cat, char, rank, judges: document.getElementById('winJudges').value, bestTitle: (rank==='Best'?document.getElementById('winBestTitle').value:null), proof: p, date: document.getElementById('winDate').value||new Date().toISOString() }); }
+                if(!m.repertoire) m.repertoire=[]; if(!m.repertoire.includes(char)) m.repertoire.push(char); 
                 db.collection("members").doc(id).set(m).then(() => closeModal('modalWin')); 
             };
-            
             if(proof) { const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.src = e.target.result; i.onload = () => { const c = document.createElement('canvas'); const x = c.getContext('2d'); const M = 500; let w=i.width,h=i.height; if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} c.width=w; c.height=h; x.drawImage(i,0,0,w,h); save(c.toDataURL('image/jpeg',0.6)); } }; r.readAsDataURL(proof); } else save(null);
         }
 
@@ -1468,176 +1660,58 @@
             if(document.getElementById('view-official').classList.contains('active')) { renderLeaderboard('official'); prepareHistoryData('official'); }
             if(document.getElementById('view-trainee').classList.contains('active')) { renderLeaderboard('trainee'); prepareHistoryData('trainee'); }
             if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value); 
-            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers(); 
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers();
+            if(document.getElementById('view-events').classList.contains('active')) renderEvents();
         }
         window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
 
         // --- VISITOR & GEO ANALYTICS LOGIC ---
         
-        // 1. Fungsi Utama: Track Pengunjung Baru
         async function trackVisitor() {
-            // Cek localStorage agar tidak menghitung orang yang sama berulang kali dalam 1 sesi
-            if (sessionStorage.getItem('visited_this_session')) {
-                loadVisitorStats(); // Cuma load data, ga nambah hitungan
-                return; 
-            }
+            if (sessionStorage.getItem('visited_this_session')) { loadVisitorStats(); return; }
             sessionStorage.setItem('visited_this_session', 'true');
-
             try {
-                // A. Ambil Lokasi via API Gratis (ipapi.co)
-                const response = await fetch('https://ipapi.co/json/');
-                const data = await response.json();
-                
-                // Pastikan data valid, kalau gagal pakai 'Unknown'
-                const country = data.country_name || 'Unknown';
-                const region = data.region || 'Unknown Region';
-                const flag = getFlagEmoji(data.country_code) || '🏳️'; // Helper Flag
-
-                // B. Update Database Firebase (Atomic Increment)
-                const statsRef = db.collection('analytics').doc('visitors');
-                const geoRef = db.collection('analytics').doc('geo_data');
-
+                const response = await fetch('https://ipapi.co/json/'); const data = await response.json();
+                const country = data.country_name || 'Unknown'; const region = data.region || 'Unknown Region'; const flag = getFlagEmoji(data.country_code) || '🏳️';
+                const statsRef = db.collection('analytics').doc('visitors'); const geoRef = db.collection('analytics').doc('geo_data');
                 db.runTransaction(async (transaction) => {
-                    const statsDoc = await transaction.get(statsRef);
-                    const geoDoc = await transaction.get(geoRef);
-
-                    // 1. Update Total Counter
-                    let newTotal = 1;
-                    if (statsDoc.exists) {
-                        newTotal = (statsDoc.data().total || 0) + 1;
-                    }
+                    const statsDoc = await transaction.get(statsRef); const geoDoc = await transaction.get(geoRef);
+                    let newTotal = 1; if (statsDoc.exists) { newTotal = (statsDoc.data().total || 0) + 1; }
                     transaction.set(statsRef, { total: newTotal }, { merge: true });
-
-                    // 2. Update Geo Data (Negara & Provinsi)
                     let geoData = geoDoc.exists ? geoDoc.data() : {};
-                    
-                    if (!geoData[country]) {
-                        geoData[country] = { total: 0, flag: flag, regions: {} };
-                    }
-                    
-                    geoData[country].total += 1;
-                    geoData[country].flag = flag; // Update flag incase data lama ga ada flag
-                    
-                    if (!geoData[country].regions[region]) {
-                        geoData[country].regions[region] = 0;
-                    }
-                    geoData[country].regions[region] += 1;
-
+                    if (!geoData[country]) { geoData[country] = { total: 0, flag: flag, regions: {} }; }
+                    geoData[country].total += 1; geoData[country].flag = flag; 
+                    if (!geoData[country].regions[region]) { geoData[country].regions[region] = 0; } geoData[country].regions[region] += 1;
                     transaction.set(geoRef, geoData);
-                }).then(() => {
-                    console.log("Visitor tracked: " + country + ", " + region);
-                    loadVisitorStats(); // Refresh tampilan setelah update
-                });
-
-            } catch (error) {
-                console.error("Tracking failed:", error);
-                loadVisitorStats(); // Tetap load data lama meski tracking gagal
-            }
+                }).then(() => { loadVisitorStats(); });
+            } catch (error) { loadVisitorStats(); }
         }
 
-        // 2. Fungsi Load & Render Data Statistik
         function loadVisitorStats() {
-            // Ambil Total Visitor
-            db.collection('analytics').doc('visitors').onSnapshot(doc => {
-                if (doc.exists) {
-                    const total = doc.data().total || 0;
-                    animateValue("totalVisitorCount", 0, total, 2000);
-                }
-            });
-
-            // Ambil Data Geo
-            db.collection('analytics').doc('geo_data').onSnapshot(doc => {
-                if (doc.exists) {
-                    renderGeoStats(doc.data());
-                } else {
-                    document.getElementById('geoList').innerHTML = "<small>Belum ada data.</small>";
-                }
+            db.collection('analytics').doc('visitors').onSnapshot(doc => { if (doc.exists) { animateValue("totalVisitorCount", 0, doc.data().total || 0, 2000); } });
+            db.collection('analytics').doc('geo_data').onSnapshot(doc => { 
+                // Remove Skeleton Logic
+                const list = document.getElementById('geoList');
+                if (doc.exists) { renderGeoStats(doc.data()); } else { list.innerHTML = "<small>Belum ada data.</small>"; }
             });
         }
 
-        // 3. Render Tampilan Kartu Negara
         function renderGeoStats(data) {
-            const list = document.getElementById('geoList');
-            list.innerHTML = "";
-
-            // Convert object ke array & sort berdasarkan total terbanyak
-            const countries = Object.keys(data).map(key => ({
-                name: key,
-                ...data[key]
-            })).sort((a, b) => b.total - a.total);
-
-            // Hitung total semua (untuk persentase bar)
+            const list = document.getElementById('geoList'); list.innerHTML = "";
+            const countries = Object.keys(data).map(key => ({ name: key, ...data[key] })).sort((a, b) => b.total - a.total);
             const totalVisits = countries.reduce((sum, c) => sum + c.total, 0);
-
             countries.forEach(c => {
                 const percent = totalVisits > 0 ? (c.total / totalVisits) * 100 : 0;
-                
-                // Sort Regions dalam negara
-                const regions = Object.keys(c.regions).map(rKey => ({
-                    name: rKey,
-                    count: c.regions[rKey]
-                })).sort((a, b) => b.count - a.count);
-
-                let regionsHTML = "";
-                regions.forEach(r => {
-                    regionsHTML += `<div class="province-item"><span>📍 ${escapeHtml(r.name)}</span><span class="province-count">${r.count}</span></div>`;
-                });
-
-                // HTML Kartu Negara (Clickable)
-                const cardHTML = `
-                    <div class="geo-card">
-                        <div class="geo-header" onclick="toggleGeoDetail(this)">
-                            <div class="geo-info">
-                                <span class="geo-flag">${c.flag}</span>
-                                <div>
-                                    <div class="geo-name">${escapeHtml(c.name)}</div>
-                                    <div class="geo-bar-bg"><div class="geo-bar-fill" style="width:${percent}%"></div></div>
-                                </div>
-                            </div>
-                            <div class="geo-count">${c.total}</div>
-                        </div>
-                        <div class="geo-details">
-                            ${regionsHTML}
-                        </div>
-                    </div>
-                `;
-                list.insertAdjacentHTML('beforeend', cardHTML);
+                const regions = Object.keys(c.regions).map(rKey => ({ name: rKey, count: c.regions[rKey] })).sort((a, b) => b.count - a.count);
+                let regionsHTML = ""; regions.forEach(r => { regionsHTML += `<div class="province-item"><span>📍 ${escapeHtml(r.name)}</span><span class="province-count">${r.count}</span></div>`; });
+                list.insertAdjacentHTML('beforeend', `<div class="geo-card"><div class="geo-header" onclick="toggleGeoDetail(this)"><div class="geo-info"><span class="geo-flag">${c.flag}</span><div><div class="geo-name">${escapeHtml(c.name)}</div><div class="geo-bar-bg"><div class="geo-bar-fill" style="width:${percent}%"></div></div></div></div><div class="geo-count">${c.total}</div></div><div class="geo-details">${regionsHTML}</div></div>`);
             });
         }
 
-        // 4. Helper: Animasi Angka Berjalan
-        function animateValue(id, start, end, duration) {
-            const obj = document.getElementById(id);
-            if(!obj) return;
-            let startTimestamp = null;
-            const step = (timestamp) => {
-                if (!startTimestamp) startTimestamp = timestamp;
-                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-                obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString();
-                if (progress < 1) {
-                    window.requestAnimationFrame(step);
-                }
-            };
-            window.requestAnimationFrame(step);
-        }
-
-        // 5. Helper: Toggle Buka/Tutup Detail Provinsi
-        function toggleGeoDetail(headerElement) {
-            const detail = headerElement.nextElementSibling;
-            detail.classList.toggle('open');
-        }
-
-        // 6. Helper: Convert Kode Negara ke Emoji Bendera
-        function getFlagEmoji(countryCode) {
-            if(!countryCode) return '🏳️';
-            const codePoints = countryCode
-                .toUpperCase()
-                .split('')
-                .map(char =>  127397 + char.charCodeAt());
-            return String.fromCodePoint(...codePoints);
-        }
-
-        // Panggil fungsi tracking saat halaman dimuat
+        function animateValue(id, start, end, duration) { const obj = document.getElementById(id); if(!obj) return; let startTimestamp = null; const step = (timestamp) => { if (!startTimestamp) startTimestamp = timestamp; const progress = Math.min((timestamp - startTimestamp) / duration, 1); obj.innerHTML = Math.floor(progress * (end - start) + start).toLocaleString(); if (progress < 1) { window.requestAnimationFrame(step); } }; window.requestAnimationFrame(step); }
+        function toggleGeoDetail(headerElement) { const detail = headerElement.nextElementSibling; detail.classList.toggle('open'); }
+        function getFlagEmoji(countryCode) { if(!countryCode) return '🏳️'; const codePoints = countryCode.toUpperCase().split('').map(char => 127397 + char.charCodeAt()); return String.fromCodePoint(...codePoints); }
+        
         trackVisitor();
     </script>
 </body>
