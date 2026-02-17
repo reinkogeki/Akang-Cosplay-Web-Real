@@ -52,6 +52,20 @@
             margin: 0; padding-bottom: 80px;
         }
 
+        /* --- LOADING OVERLAY (SPLASH SCREEN) --- */
+        #loadingOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--dark); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .loader-spinner {
+            border: 5px solid #333; border-top: 5px solid var(--primary);
+            border-radius: 50%; width: 50px; height: 50px;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         /* --- HEADER --- */
         header {
             background: linear-gradient(135deg, #192a56, #273c75);
@@ -221,6 +235,17 @@
             width: 100%; aspect-ratio: 1 / 1; object-fit: cover; 
             border-radius: 5px; margin-top: 10px; border: 1px solid #555; display: block; cursor: zoom-in; 
         }
+
+        /* --- STYLES BARU UNTUK TEAM/SQUAD --- */
+        .teammate-row { display: flex; gap: 5px; margin-bottom: 5px; align-items: center; }
+        .teammate-row select, .teammate-row input { margin: 0; flex: 1; }
+        .team-list-names { font-size: 0.85rem; color: #ccc; margin-top: 5px; line-height: 1.4; }
+        .team-member-link { color: var(--primary); font-weight: bold; text-decoration: none; }
+        .team-member-link:hover { text-decoration: underline; }
+        .team-non-member { color: #aaa; }
+        .btn-see-more { background: none; border: none; color: var(--accent-blue); cursor: pointer; font-size: 0.8rem; padding: 0; margin-left: 5px;}
+        .btn-see-more:hover { text-decoration: underline; }
+        .hidden-names { display: none; }
 
         /* --- EVENT CARDS (NEW) --- */
         .event-card {
@@ -486,6 +511,7 @@
         input:not(.search-bar):not(#chatInput), select, textarea { width: 100%; padding: 12px; background: var(--dark); border: 1px solid #57606f; color: white; border-radius: 5px; margin-top: 5px; margin-bottom: 10px; }
         label { color: #ccc; font-weight: bold; }
         .btn-submit { width: 100%; background: var(--primary); color: white; padding: 12px; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; margin-top: 15px; }
+        .btn-submit:disabled { background: #555; cursor: not-allowed; opacity: 0.7; }
         .hidden { display: none; }
 
         /* Settings */
@@ -507,6 +533,11 @@
     </style>
 </head>
 <body>
+
+    <div id="loadingOverlay">
+        <div class="loader-spinner"></div>
+        <h3 style="color:var(--primary); font-family:'LeagueSpartan'; letter-spacing:2px; animation: pulse 1s infinite;">MEMUAT DATA...</h3>
+    </div>
 
     <header id="mainHeader">
         <div class="auth-container">
@@ -642,7 +673,7 @@
             <div id="empty-lb-trainee" style="text-align: center; color: #777; margin-top: 20px; display: none;">Belum ada Trainee.</div>
 
             <h3 style="color:var(--sky-blue); margin-top:40px; border-left: 4px solid var(--sky-blue); padding-left: 10px;">📜 Riwayat Juara (Trainee)</h3>
-             
+              
             <div class="search-container">
                 <i class="fas fa-search search-icon"></i>
                 <input type="text" id="searchTrainee" class="search-bar" placeholder="Cari data trainee..." onkeyup="prepareHistoryData('trainee')">
@@ -740,7 +771,7 @@
                 </div>
 
                 <div id="savePostModeBtn" class="action-menu-container" style="display:none;">
-                     <button class="btn-action-trigger saving" onclick="toggleManagePostsMode()"><i class="fas fa-check"></i></button>
+                      <button class="btn-action-trigger saving" onclick="toggleManagePostsMode()"><i class="fas fa-check"></i></button>
                 </div>
                 
                 <img src="" id="p-photo" class="profile-pic">
@@ -803,7 +834,7 @@
             <div id="formLogin">
                 <label>Email</label><input type="email" id="loginEmail">
                 <label>Password</label><input type="password" id="loginPass">
-                <button class="btn-submit" onclick="login()">Masuk</button>
+                <button class="btn-submit" id="btnLogin" onclick="login()">Masuk</button>
                 <p id="loginError" style="color:var(--danger); font-size:0.9rem; margin-top:10px;"></p>
             </div>
             <div id="formRegister" class="hidden">
@@ -819,7 +850,7 @@
 
                 <label>Bio Singkat</label><textarea id="regBio" rows="2"></textarea>
                 <label>Link Instagram</label><input type="text" id="regIg" placeholder="@username">
-                <button class="btn-submit" style="background:var(--green);" onclick="registerUser()">Daftar & Buat Profil</button>
+                <button class="btn-submit" id="btnRegister" style="background:var(--green);" onclick="registerUser()">Daftar & Buat Profil</button>
                 <p id="regError" style="color:var(--danger); font-size:0.9rem; margin-top:10px;"></p>
             </div>
             <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAuth')">Batal</button>
@@ -831,7 +862,7 @@
             <h3 style="color: var(--accent-blue);"><i class="fas fa-gamepad"></i> Tambah Katalog Game</h3>
             <label>Nama Game</label><input type="text" id="addGameName" placeholder="Contoh: Valorant">
             <label>Gambar Cover Game</label><input type="file" id="addGameImage" accept="image/*">
-            <button class="btn-submit" onclick="submitAddGame()">Simpan Game</button>
+            <button class="btn-submit" id="btnSaveGame" onclick="submitAddGame()">Simpan Game</button>
             <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddGame')">Batal</button>
         </div>
     </div>
@@ -843,9 +874,8 @@
             <label>Nama Event</label><input type="text" id="evtName">
             <label>Tipe Event</label>
             <select id="evtType">
-                <option value="Competition">Lomba Cosplay</option>
-                <option value="Gathering">Gathering / Meetup</option>
-                <option value="Performance">Guest Star Performance</option>
+                <option value="Coswalk Competition">Coswalk Competition</option>
+                <option value="Cosplay Competition">Cosplay Competition</option>
             </select>
             
             <label>Tanggal & Waktu</label><input type="datetime-local" id="evtDate">
@@ -862,7 +892,7 @@
             <label>Rundown (Opsional)</label>
             <textarea id="evtRundown" rows="4" placeholder="10:00 - Open Gate..."></textarea>
 
-            <button class="btn-submit" onclick="submitEvent()">Publish Event</button>
+            <button class="btn-submit" id="btnSaveEvent" onclick="submitEvent()">Publish Event</button>
             <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddEvent')">Batal</button>
         </div>
     </div>
@@ -904,7 +934,7 @@
                 <button onclick="addRepertoireTag()" style="width:50px; background:var(--accent-blue); border:none; color:white; border-radius:5px;">+</button>
             </div>
             <div id="editRepList" style="margin-top:10px;"></div>
-            <button class="btn-submit" onclick="saveEditProfile()">Update</button>
+            <button class="btn-submit" id="btnSaveProfile" onclick="saveEditProfile()">Update Profil</button>
             <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEdit')">Batal</button>
         </div>
     </div>
@@ -956,11 +986,25 @@
             <h3>🏆 Input Kemenangan</h3>
             <input type="hidden" id="winEditId">
             
-            <label>Siapa yang menang?</label><select id="winMember"></select>
+            <label>Siapa yang menang? (Utama)</label><select id="winMember"></select>
+            
+            <label>Format</label>
+            <select id="winFormat" onchange="toggleTeammateInput()">
+                <option value="Single">Single (Solo)</option>
+                <option value="Duo">Duo (2 Orang)</option>
+                <option value="Squad">Squad / Cabaret (Tim)</option>
+            </select>
+
+            <div id="teammatesSection" class="hidden" style="background:rgba(255,255,255,0.05); padding:10px; margin-bottom:10px; border-radius:5px;">
+                <label style="color:var(--sky-blue);">Partner / Tim</label>
+                <div id="teammatesContainer"></div>
+                <button onclick="addTeammateInput()" style="background:var(--dark); border:1px dashed #777; color:#aaa; width:100%; padding:8px; margin-top:5px;">+ Tambah Partner</button>
+            </div>
+
             <label>Nama Event</label><input type="text" id="winEvent">
             <label>Kategori</label>
             <select id="winCat"><option value="Coswalk">Coswalk</option><option value="Cosplay Competition">Cosplay Competition</option></select>
-            <label>Karakter</label><input type="text" id="winChar">
+            <label>Karakter</label><input type="text" id="winChar" placeholder="Karakter Utama (Anda)">
             <label>Tanggal Event</label><input type="date" id="winDate">
             <label>Juara Ke-</label>
             <select id="winRank" onchange="toggleBestInput()"><option value="1">Juara 1</option><option value="2">Juara 2</option><option value="3">Juara 3</option><option value="Best">Best / Fav</option></select>
@@ -993,9 +1037,9 @@
 
     <script>
         let defaultLogoUrl = ""; let gamersLogoUrl = ""; let traineeLogoUrl = "";
+        let isInitialLoad = true; // Flag untuk splash screen
 
-        // --- 1. CONFIG PLAYLIST VIDEO (MERGED) ---
-        // Playlist Shorts (Coswalk - Vertikal 9:16)
+        // --- 1. CONFIG PLAYLIST VIDEO ---
         const playlistCoswalk = [
             { id: "4acprM6vacI", title: "Rein as Deathstroke (Coswalk)" },
             { id: "o3_dOYsWwP4", title: "Nabilla as Azula (Coswalk)" },
@@ -1004,7 +1048,6 @@
             { id: "a6ae4ACV5d0", title: "Rein as Batman Who Laughs" }
         ];
 
-        // Playlist Video Panjang (Coscom - Horizontal 16:9)
         const playlistCoscom = [
             { id: "jRj79denqgY", title: "Kanekian as Date Masamune (ANICO)" },
             { id: "8Z5NjhLztSk", title: "Nabilla as Corin Wickes (ANICO)" },
@@ -1028,7 +1071,7 @@
 
         let members = []; let games = []; let events = []; let currentTempRepertoire = [];
         let isRein = false; let isAdmin = false; let currentUser = null; 
-        let isManagePostMode = false; // State untuk Mode Hapus Postingan
+        let isManagePostMode = false;
         const ADMIN_HASH = "240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9"; 
         
         let currentHistoryData = []; let currentHistoryDisplayCount = 0; const HISTORY_BATCH_SIZE = 5; 
@@ -1042,18 +1085,36 @@
             updateAuthUI();
         });
 
+        // --- KEY FIX: ID BINDING & SPLASH SCREEN REMOVAL ---
         let debounceTimer;
         db.collection("members").onSnapshot((snapshot) => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => { members = []; snapshot.forEach((doc) => { members.push(doc.data()); }); renderAll(); }, 500);
+            debounceTimer = setTimeout(() => { 
+                members = []; 
+                snapshot.forEach((doc) => { 
+                    const data = doc.data();
+                    data.id = doc.id; // !! PENTING: ID Binding !!
+                    members.push(data); 
+                }); 
+                renderAll();
+                
+                // Hide splash screen after first load
+                if(isInitialLoad) {
+                    const overlay = document.getElementById('loadingOverlay');
+                    overlay.style.opacity = '0';
+                    setTimeout(() => overlay.style.display = 'none', 500);
+                    isInitialLoad = false;
+                }
+            }, 500);
         });
 
-        db.collection("games").onSnapshot((snapshot) => { games = []; snapshot.forEach((doc) => { games.push(doc.data()); }); if(document.getElementById('view-gamers').classList.contains('active')) renderGames(); });
+        db.collection("games").onSnapshot((snapshot) => { games = []; snapshot.forEach((doc) => { const d = doc.data(); d.id = doc.id; games.push(d); }); if(document.getElementById('view-gamers').classList.contains('active')) renderGames(); });
         
-        // NEW: Fetch Events
         db.collection("events").orderBy('date', 'asc').onSnapshot((snapshot) => { 
             events = []; 
-            snapshot.forEach((doc) => { events.push(doc.data()); });
+            snapshot.forEach((doc) => { 
+                const d = doc.data(); d.id = doc.id; events.push(d); 
+            });
             if(document.getElementById('view-events').classList.contains('active')) renderEvents();
         });
 
@@ -1061,12 +1122,10 @@
         db.collection("settings").doc("gamers").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { gamersLogoUrl = doc.data().logo; if(document.getElementById('view-gamers').classList.contains('active')) { document.getElementById('teamLogo').src = gamersLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
         db.collection("settings").doc("trainee").onSnapshot((doc) => { if(doc.exists && doc.data().logo) { traineeLogoUrl = doc.data().logo; if(document.getElementById('view-trainee').classList.contains('active')) { document.getElementById('teamLogo').src = traineeLogoUrl; document.getElementById('teamLogo').style.display = "block"; } } });
 
-        // --- PLAYLIST LOGIC (NEW) ---
+        // --- PLAYLIST LOGIC ---
         function renderPlaylists() {
             renderPlaylist('coswalk', playlistCoswalk);
             renderPlaylist('coscom', playlistCoscom);
-            
-            // Set Initial Video (First in list)
             if(playlistCoswalk.length > 0) changeVideo('coswalk', playlistCoswalk[0].id);
             if(playlistCoscom.length > 0) changeVideo('coscom', playlistCoscom[0].id);
         }
@@ -1076,7 +1135,6 @@
             container.innerHTML = "";
             list.forEach((item, index) => {
                 const thumbUrl = `https://img.youtube.com/vi/${item.id}/default.jpg`;
-                
                 container.innerHTML += `
                     <div class="playlist-item" onclick="changeVideo('${type}', '${item.id}', this)">
                         <img src="${thumbUrl}" class="playlist-thumb">
@@ -1087,7 +1145,6 @@
                     </div>
                 `;
             });
-            // Set first item active
             const firstItem = container.querySelector('.playlist-item');
             if(firstItem) firstItem.classList.add('active');
         }
@@ -1095,15 +1152,12 @@
         function changeVideo(type, id, element) {
             const iframe = document.getElementById(`iframe-${type}`);
             iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
-            
-            // Highlight active item
             if(element) {
                 const container = document.getElementById(`playlist-${type}`);
                 container.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('active'));
                 element.classList.add('active');
             }
         }
-        // Init Playlist
         renderPlaylists();
 
         function updateAuthUI() {
@@ -1134,39 +1188,63 @@
         function toggleUserMenu() { document.getElementById('userDropdown').classList.toggle('show'); }
         window.addEventListener('click', function(e) { if (!document.getElementById('authBtn').contains(e.target) && !document.getElementById('userDropdown').contains(e.target)) { document.getElementById('userDropdown').classList.remove('show'); } });
         
-        // ACTION MENU (PENCIL) LOGIC
         function toggleActionDropdown() { document.getElementById('actionDropdown').classList.toggle('show'); }
         window.addEventListener('click', function(e) { if (!document.getElementById('btnPencil').contains(e.target) && !document.getElementById('actionDropdown').contains(e.target)) { document.getElementById('actionDropdown').classList.remove('show'); } });
 
-        // TOGGLE MANAGE POSTS MODE (Hapus/Edit Mode)
         function toggleManagePostsMode() {
             isManagePostMode = !isManagePostMode;
             const profileView = document.getElementById('view-profile');
             const menuContainer = document.getElementById('profileActionMenu');
             const saveContainer = document.getElementById('savePostModeBtn');
             const dropdown = document.getElementById('actionDropdown');
-
-            dropdown.classList.remove('show'); // Tutup dropdown
-
+            dropdown.classList.remove('show'); 
             if (isManagePostMode) {
-                // MASUK MODE EDIT
                 profileView.classList.add('delete-mode-active');
-                menuContainer.style.display = 'none'; // Sembunyikan pensil
-                saveContainer.style.display = 'block'; // Munculkan tombol Check/Save
+                menuContainer.style.display = 'none'; 
+                saveContainer.style.display = 'block'; 
             } else {
-                // KELUAR MODE EDIT
                 profileView.classList.remove('delete-mode-active');
-                menuContainer.style.display = 'block'; // Munculkan pensil
-                saveContainer.style.display = 'none'; // Sembunyikan tombol Check/Save
+                menuContainer.style.display = 'block'; 
+                saveContainer.style.display = 'none'; 
             }
         }
 
         function openAuthModal() { document.getElementById('modalAuth').style.display = 'flex'; switchAuthTab('login'); document.getElementById('loginError').innerText = ""; document.getElementById('regError').innerText = ""; }
         function switchAuthTab(tab) { document.querySelectorAll('.auth-tab-btn').forEach(b => b.classList.remove('active')); if(tab === 'login') { document.querySelector('.auth-tab-btn:first-child').classList.add('active'); document.getElementById('formLogin').classList.remove('hidden'); document.getElementById('formRegister').classList.add('hidden'); } else { document.querySelector('.auth-tab-btn:last-child').classList.add('active'); document.getElementById('formLogin').classList.add('hidden'); document.getElementById('formRegister').classList.remove('hidden'); } }
-        function login() { const email = document.getElementById('loginEmail').value; const pass = document.getElementById('loginPass').value; const err = document.getElementById('loginError'); if(!email || !pass) { err.innerText = "Isi semua!"; return; } auth.signInWithEmailAndPassword(email, pass).then(() => { closeModal('modalAuth'); }).catch((error) => { err.innerText = error.message; }); }
+        
+        // --- BUTTON LOADING STATE HELPER ---
+        function setLoading(btnId, isLoading, text) {
+            const btn = document.getElementById(btnId);
+            if(isLoading) {
+                btn.disabled = true;
+                btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${text}`;
+                btn.style.cursor = 'wait';
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = text;
+                btn.style.cursor = 'pointer';
+            }
+        }
+
+        function login() { 
+            const email = document.getElementById('loginEmail').value; 
+            const pass = document.getElementById('loginPass').value; 
+            const err = document.getElementById('loginError'); 
+            
+            if(!email || !pass) { err.innerText = "Isi semua!"; return; }
+            setLoading('btnLogin', true, 'Masuk...');
+
+            auth.signInWithEmailAndPassword(email, pass).then(() => { 
+                closeModal('modalAuth'); 
+                setLoading('btnLogin', false, 'Masuk');
+            }).catch((error) => { 
+                err.innerText = error.message; 
+                setLoading('btnLogin', false, 'Masuk');
+            }); 
+        }
+
         function logout() { auth.signOut().then(() => { switchView('official'); }); }
         
-        // NEW: REGISTER WITH WHATSAPP
         function registerUser() { 
             const email = document.getElementById('regEmail').value; 
             const pass = document.getElementById('regPass').value; 
@@ -1179,6 +1257,8 @@
             if(!email || !pass || !name || !wa) { err.innerText = "Isi semua, termasuk WhatsApp!"; return; } 
             if(pass.length < 6) { err.innerText = "Min 6 karakter"; return; } 
             
+            setLoading('btnRegister', true, 'Mendaftar...');
+
             auth.createUserWithEmailAndPassword(email, pass).then((userCredential) => { 
                 const user = userCredential.user; 
                 const newMember = { 
@@ -1186,8 +1266,8 @@
                     name: name, 
                     bio: bio, 
                     ig: ig, 
-                    wa: wa,             // Save WA
-                    waPrivacy: 'hidden', // Default hidden
+                    wa: wa,             
+                    waPrivacy: 'hidden', 
                     photo: null, 
                     history: [], 
                     repertoire: [], 
@@ -1196,8 +1276,9 @@
                 }; 
                 db.collection("members").doc(user.uid).set(newMember).then(() => { 
                     closeModal('modalAuth'); 
-                }).catch(e => { err.innerText = e.message; }); 
-            }).catch((error) => { err.innerText = error.message; }); 
+                    setLoading('btnRegister', false, 'Daftar & Buat Profil');
+                }).catch(e => { err.innerText = e.message; setLoading('btnRegister', false, 'Daftar & Buat Profil'); }); 
+            }).catch((error) => { err.innerText = error.message; setLoading('btnRegister', false, 'Daftar & Buat Profil'); }); 
         }
 
         function renderMigrationList() { const container = document.getElementById('migrationList'); container.innerHTML = ""; const candidates = members.filter(m => currentUser && m.id !== currentUser.uid); if(candidates.length === 0) { container.innerHTML = "Kosong."; return; } candidates.forEach(m => { container.innerHTML += `<div style="margin-bottom:10px;"><strong>${escapeHtml(m.name)}</strong> (${m.history ? m.history.length : 0} Wins) <button onclick="executeMigration('${m.id}')">Ambil</button></div>`; }); }
@@ -1211,8 +1292,6 @@
             
             const header = document.getElementById('mainHeader'); const title = document.getElementById('headerTitle'); const estText = document.getElementById('headerEst'); const logo = document.getElementById('teamLogo');
             header.classList.remove('gamers-mode'); header.classList.remove('trainee-mode');
-
-            // Reset Tabs
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
             if(view === 'gamers') {
@@ -1236,14 +1315,12 @@
             }
         }
 
-        // --- FUNGSI RENDER TIM INTI (UPDATED: Achievement Highlight) ---
         function renderAboutTeam() {
             const setMemberData = (idPrefix, nameKey) => {
                 const m = members.find(m => m.name.toLowerCase().includes(nameKey));
                 if(m) {
                     if(m.photo) document.getElementById(`img-team-${idPrefix}`).src = m.photo;
                     if(m.role) document.getElementById(`role-team-${idPrefix}`).innerText = m.role;
-                    
                     const achDiv = document.getElementById(`ach-team-${idPrefix}`);
                     if(achDiv) {
                         if(m.topAchievement) {
@@ -1264,7 +1341,6 @@
         async function downloadBackupData() { const backup = { members: members, games: games, version: "1.0", date: new Date().toISOString() }; const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backup)); const node = document.createElement('a'); node.href = dataStr; node.download = "backup_" + Date.now() + ".json"; document.body.appendChild(node); node.click(); node.remove(); }
         function restoreToFirebase() { const file = document.getElementById('restoreFile').files[0]; if(!file) return; const reader = new FileReader(); reader.onload = async (e) => { try { const data = JSON.parse(e.target.result); if(!confirm(`Restore ${data.members.length} member?`)) return; for (const m of data.members) { await db.collection("members").doc(m.id).set(m); } location.reload(); } catch(err) { alert("Gagal: " + err.message); } }; reader.readAsText(file); }
         
-        // --- FUNGSI UPDATE LOGO ---
         function compressAndSaveLogo(inputId, collectionId) {
             const file = document.getElementById(inputId).files[0];
             if (!file) { alert("Pilih gambar dulu!"); return; }
@@ -1279,14 +1355,7 @@
                     const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     db.collection("settings").doc(collectionId).set({ logo: dataUrl }).then(() => {
                             alert("SUKSES! Logo berhasil diganti.");
-                            const logoImg = document.getElementById('teamLogo');
-                            const viewOfficial = document.getElementById('view-official').classList.contains('active');
-                            const viewGamers = document.getElementById('view-gamers').classList.contains('active');
-                            const viewTrainee = document.getElementById('view-trainee').classList.contains('active');
-                            if (collectionId === 'global' && viewOfficial) logoImg.src = dataUrl;
-                            if (collectionId === 'gamers' && viewGamers) logoImg.src = dataUrl;
-                            if (collectionId === 'trainee' && viewTrainee) logoImg.src = dataUrl;
-                            document.getElementById(inputId).value = "";
+                            location.reload();
                     }).catch((error) => { alert("Gagal menyimpan: " + error.message); });
                 }
             };
@@ -1298,17 +1367,31 @@
         function saveTraineeLogo() { compressAndSaveLogo('settingTraineeLogo', 'trainee'); }
 
         function renderGamers() { let rein = members.find(m => m.name.toLowerCase().includes("rein")); let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla")); if(rein && rein.photo) document.getElementById('img-gamer-rein').src = rein.photo; if(nabilla && nabilla.photo) document.getElementById('img-gamer-nabilla').src = nabilla.photo; renderGames(); }
-        function renderGames() { const container = document.getElementById('game-catalog-list'); container.innerHTML = ""; games.forEach(g => { let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame(${g.id})"><i class="fas fa-trash"></i></button>` : ``; container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}"><div class="game-title">${escapeHtml(g.name)}</div></div>`; }); if(isAdmin) document.querySelectorAll('.show-admin').forEach(b => b.style.display = 'block'); }
-        function submitAddGame() { const name = document.getElementById('addGameName').value; const file = document.getElementById('addGameImage').files[0]; if(!name) return; const save = (img) => { const ng = { id: Date.now(), name: name, image: img || "" }; db.collection("games").doc(ng.id.toString()).set(ng).then(() => { closeModal('modalAddGame'); }); }; if(file) { const r = new FileReader(); r.onload = (e) => save(e.target.result); r.readAsDataURL(file); } else save(null); }
+        function renderGames() { const container = document.getElementById('game-catalog-list'); container.innerHTML = ""; games.forEach(g => { let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame('${g.id}')"><i class="fas fa-trash"></i></button>` : ``; container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}"><div class="game-title">${escapeHtml(g.name)}</div></div>`; }); if(isAdmin) document.querySelectorAll('.show-admin').forEach(b => b.style.display = 'block'); }
+        
+        function submitAddGame() { 
+            const name = document.getElementById('addGameName').value; 
+            const file = document.getElementById('addGameImage').files[0]; 
+            if(!name) return; 
+            setLoading('btnSaveGame', true, 'Menyimpan...');
+
+            const save = (img) => { 
+                const ng = { id: Date.now().toString(), name: name, image: img || "" }; 
+                db.collection("games").doc(ng.id).set(ng).then(() => { 
+                    closeModal('modalAddGame'); 
+                    setLoading('btnSaveGame', false, 'Simpan Game');
+                }); 
+            }; 
+            if(file) { const r = new FileReader(); r.onload = (e) => save(e.target.result); r.readAsDataURL(file); } else save(null); 
+        }
         function deleteGame(id) { if(confirm("Hapus game?")) db.collection("games").doc(id.toString()).delete(); }
         
-        // --- NEW: EVENT FUNCTIONS ---
+        // --- NEW: EVENT FUNCTIONS (UPDATED WITH ASYNC & LOADING) ---
         function renderEvents() {
             const list = document.getElementById('events-list');
             list.innerHTML = "";
             if(events.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777;'>Belum ada event terjadwal.</p>"; return; }
             
-            // Sort events: Upcoming first, then past
             const now = new Date();
             const upcoming = events.filter(e => new Date(e.date) >= now);
             const past = events.filter(e => new Date(e.date) < now);
@@ -1322,11 +1405,10 @@
                 let prizesHTML = "";
                 if(e.prizes && e.prizes.length > 0) {
                     e.prizes.forEach(p => {
-                         prizesHTML += `<div class="prize-item"><span>${escapeHtml(p.name)}</span><span class="prize-amount">${escapeHtml(p.amount)}</span></div>`;
+                          prizesHTML += `<div class="prize-item"><span>${escapeHtml(p.name)}</span><span class="prize-amount">${escapeHtml(p.amount)}</span></div>`;
                     });
                 }
                 
-                // Admin Delete Button
                 const delBtn = isAdmin ? `<button onclick="deleteEvent('${e.id}')" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-trash"></i></button>` : '';
 
                 list.innerHTML += `
@@ -1352,67 +1434,75 @@
             });
         }
 
-        let tempEventPrizes = [];
         function addEventCategoryInput() {
             const container = document.getElementById('evtPrizesContainer');
             const id = Date.now();
-            const html = `
-                <div id="prize-${id}" style="display:flex; gap:5px; margin-bottom:5px;">
-                    <input type="text" placeholder="Kategori (mis: Juara 1)" class="prize-name-input">
-                    <input type="text" placeholder="Hadiah (mis: 1 Juta)" class="prize-amount-input">
-                    <button onclick="document.getElementById('prize-${id}').remove()" style="background:red; color:white; border:none; border-radius:5px; width:30px;"><i class="fas fa-times"></i></button>
-                </div>
-            `;
+            const html = `<div id="prize-${id}" style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" placeholder="Kategori" class="prize-name-input"><input type="text" placeholder="Hadiah" class="prize-amount-input"><button onclick="document.getElementById('prize-${id}').remove()" style="background:red; color:white; border:none; border-radius:5px; width:30px;"><i class="fas fa-times"></i></button></div>`;
             container.insertAdjacentHTML('beforeend', html);
         }
 
-        function submitEvent() {
-            const name = document.getElementById('evtName').value;
-            const type = document.getElementById('evtType').value;
-            const date = document.getElementById('evtDate').value;
-            const loc = document.getElementById('evtLoc').value;
-            const judges = document.getElementById('evtJudges').value;
-            const rundown = document.getElementById('evtRundown').value;
-            const file = document.getElementById('evtPoster').files[0];
+        async function submitEvent() {
+            const btn = document.getElementById('btnSaveEvent');
+            setLoading('btnSaveEvent', true, 'Memproses...');
+            
+            await new Promise(r => setTimeout(r, 50)); // Jeda UI
 
-            // Collect Prizes
-            const prizeDivs = document.querySelectorAll('#evtPrizesContainer > div');
-            const prizes = [];
-            prizeDivs.forEach(div => {
-                const n = div.querySelector('.prize-name-input').value;
-                const a = div.querySelector('.prize-amount-input').value;
-                if(n && a) prizes.push({name: n, amount: a});
-            });
+            try {
+                const name = document.getElementById('evtName').value;
+                const type = document.getElementById('evtType').value;
+                const date = document.getElementById('evtDate').value;
+                const loc = document.getElementById('evtLoc').value;
+                const judges = document.getElementById('evtJudges').value;
+                const rundown = document.getElementById('evtRundown').value;
+                const file = document.getElementById('evtPoster').files[0];
 
-            if(!name || !date || !loc) { alert("Isi data utama!"); return; }
+                if(!name || !date || !loc) { throw new Error("Nama, Tanggal, dan Lokasi wajib diisi!"); }
 
-            const save = (url) => {
-                const newEvt = {
-                    id: Date.now().toString(),
-                    name, type, date, location: loc, judges, rundown, prizes,
-                    poster: url || null
-                };
-                db.collection("events").doc(newEvt.id).set(newEvt).then(() => {
+                // Collect Prizes
+                const prizeDivs = document.querySelectorAll('#evtPrizesContainer > div');
+                const prizes = [];
+                prizeDivs.forEach(div => {
+                    const n = div.querySelector('.prize-name-input').value;
+                    const a = div.querySelector('.prize-amount-input').value;
+                    if(n && a) prizes.push({name: n, amount: a});
+                });
+
+                const saveToDb = async (url) => {
+                    const newEvt = {
+                        id: Date.now().toString(),
+                        name, type, date, location: loc, judges, rundown, prizes,
+                        poster: url || null
+                    };
+                    await db.collection("events").doc(newEvt.id).set(newEvt);
                     closeModal('modalAddEvent');
-                    // Reset form
+                    // Reset Form
                     document.getElementById('evtName').value = "";
                     document.getElementById('evtPrizesContainer').innerHTML = "";
-                });
-            };
+                    setLoading('btnSaveEvent', false, 'Publish Event');
+                    alert("Event Berhasil Dibuat!");
+                };
 
-            if(file) {
-                const r = new FileReader(); r.onload = (e) => {
-                    // Resize Logic
-                    const i = new Image(); i.src = e.target.result;
-                    i.onload = () => {
-                        const c = document.createElement('canvas'); const x = c.getContext('2d');
-                        const M = 600; let w=i.width,h=i.height; 
-                        if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} 
-                        c.width=w; c.height=h; x.drawImage(i,0,0,w,h);
-                        save(c.toDataURL('image/jpeg', 0.7));
-                    }
-                }; r.readAsDataURL(file);
-            } else save(null);
+                if(file) {
+                    const r = new FileReader();
+                    r.onload = (e) => {
+                        const i = new Image(); i.src = e.target.result;
+                        i.onload = () => {
+                            const c = document.createElement('canvas'); const x = c.getContext('2d');
+                            const M = 600; let w=i.width,h=i.height; 
+                            if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} 
+                            c.width=w; c.height=h; x.drawImage(i,0,0,w,h);
+                            saveToDb(c.toDataURL('image/jpeg', 0.7));
+                        }
+                    };
+                    r.readAsDataURL(file);
+                } else {
+                    await saveToDb(null);
+                }
+
+            } catch (error) {
+                alert("Error: " + error.message);
+                setLoading('btnSaveEvent', false, 'Publish Event');
+            }
         }
         function deleteEvent(id) { if(confirm("Hapus event ini?")) db.collection("events").doc(id).delete(); }
         
@@ -1437,18 +1527,86 @@
         const botFaqData = [{q:"Apa itu Akang Cosplay?",a:"Tim cosplay & komunitas hobi sejak 2024! ✨"},{q:"Cara Join?",a:"Klik Login -> Tab Daftar Member -> Isi Data. Gratis!"},{q:"Sosmed?",a:"IG: @akangcosplay, TikTok: @akangcosplay, YT: Akang Cosplay"}];
 
         function setHistoryFilter(cat, btn) { activeFilterCategory = cat; btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); prepareHistoryData(activeHistoryType); }
-        function prepareHistoryData(type) { activeHistoryType = type; const listId = type === 'official' ? 'history-official-list' : 'history-trainee-list'; const searchId = type === 'official' ? 'searchOfficial' : 'searchTrainee'; document.getElementById(listId).innerHTML = ""; currentHistoryDisplayCount = 0; currentHistoryData = []; const q = document.getElementById(searchId).value.toLowerCase(); members.forEach(m => { if ((m.status || 'official') === type && m.history) { m.history.forEach(h => { currentHistoryData.push({ ...h, memberId: m.id, memberName: m.name, memberPhoto: m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png' }); }); } }); if(q) currentHistoryData = currentHistoryData.filter(i => `${i.memberName} ${i.event} ${i.char}`.toLowerCase().includes(q)); if(activeFilterCategory !== 'all') currentHistoryData = currentHistoryData.filter(h => activeFilterCategory === 'Coswalk' ? h.category === 'Coswalk' : (h.category === 'Cosplay Competition' || h.category === 'Coscom')); currentHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date)); loadNextBatch(); }
+        
+        function prepareHistoryData(type) { 
+            activeHistoryType = type; 
+            const listId = type === 'official' ? 'history-official-list' : 'history-trainee-list'; 
+            const searchId = type === 'official' ? 'searchOfficial' : 'searchTrainee'; 
+            document.getElementById(listId).innerHTML = ""; 
+            currentHistoryDisplayCount = 0; 
+            currentHistoryData = []; 
+            const q = document.getElementById(searchId).value.toLowerCase(); 
+            
+            const processedWinIds = new Set();
+
+            members.forEach(m => { 
+                if ((m.status || 'official') === type && m.history) { 
+                    m.history.forEach(h => { 
+                        if (h.winId && processedWinIds.has(h.winId)) return;
+                        if (h.winId) processedWinIds.add(h.winId);
+
+                        currentHistoryData.push({ 
+                            ...h, 
+                            memberId: m.id, 
+                            memberName: m.name, 
+                            memberPhoto: m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png' 
+                        }); 
+                    }); 
+                } 
+            }); 
+            
+            if(q) currentHistoryData = currentHistoryData.filter(i => `${i.memberName} ${i.event} ${i.char}`.toLowerCase().includes(q)); 
+            if(activeFilterCategory !== 'all') currentHistoryData = currentHistoryData.filter(h => activeFilterCategory === 'Coswalk' ? h.category === 'Coswalk' : (h.category === 'Cosplay Competition' || h.category === 'Coscom')); 
+            
+            currentHistoryData.sort((a, b) => new Date(b.date) - new Date(a.date)); 
+            loadNextBatch(); 
+        }
         
         function loadNextBatch() {
             const listId = activeHistoryType === 'official' ? 'history-official-list' : 'history-trainee-list'; const container = document.getElementById(listId);
             const batch = currentHistoryData.slice(currentHistoryDisplayCount, currentHistoryDisplayCount + HISTORY_BATCH_SIZE);
             if (batch.length === 0 && currentHistoryDisplayCount === 0) { container.innerHTML = "<p style='text-align:center;color:#777'>Data kosong.</p>"; return; }
+            
             batch.forEach(i => {
                 let border = (i.category === 'Cosplay Competition' || i.category === 'Coscom') ? 'feed-comp' : ''; if (activeHistoryType === 'trainee') border = 'feed-trainee';
                 let rankT = i.rank === 'Best' ? escapeHtml(i.bestTitle) : 'Juara ' + escapeHtml(i.rank);
                 let img = i.proof ? `<img src="${i.proof}" class="feed-img-proof" onclick="openLightbox('${i.proof}')">` : '';
-                
                 let judgesInfo = i.judges ? `<div style="font-size:0.85rem; color:var(--gold); margin-top:3px;"><i class="fas fa-gavel"></i> Juri: ${escapeHtml(i.judges)}</div>` : '';
+
+                let nameDisplayHtml = '';
+                
+                if (i.participants && i.participants.length > 0) {
+                    const sortedParticipants = i.participants.sort((a, b) => (a.type === 'member' ? -1 : 1));
+                    const visibleNames = sortedParticipants.slice(0, 3);
+                    const hiddenNames = sortedParticipants.slice(3);
+                    
+                    let visibleHtml = visibleNames.map(p => {
+                        let charText = p.char ? ` <span style="font-weight:normal; color:#aaa; font-size:0.85rem;">as ${escapeHtml(p.char)}</span>` : '';
+                        if (p.type === 'member') {
+                            return `<span style="display:block;">👤 <a href="#" onclick="openProfile('${p.id}')" class="team-member-link">${escapeHtml(p.name)}</a>${charText}</span>`;
+                        } else {
+                            return `<span style="display:block; color:#aaa;">👤 ${escapeHtml(p.name)}${charText} (Guest)</span>`;
+                        }
+                    }).join('');
+
+                    let hiddenHtml = '';
+                    if (hiddenNames.length > 0) {
+                        const hiddenList = hiddenNames.map(p => {
+                             let charText = p.char ? ` as ${escapeHtml(p.char)}` : '';
+                             if (p.type === 'member') return `👤 ${escapeHtml(p.name)}${charText}`;
+                             else return `👤 ${escapeHtml(p.name)}${charText} (Guest)`;
+                        }).join('<br>');
+                        
+                        hiddenHtml = `
+                            <button class="btn-see-more" onclick="this.nextElementSibling.style.display='block'; this.style.display='none'">... Lihat ${hiddenNames.length} lainnya</button>
+                            <div class="hidden-names" style="margin-top:5px; padding-left:10px; border-left:2px solid #555;">${hiddenList}</div>
+                        `;
+                    }
+                    
+                    nameDisplayHtml = `<div class="team-list-names">${visibleHtml} ${hiddenHtml}</div>`;
+                } else {
+                    nameDisplayHtml = `<div class="feed-title">${escapeHtml(i.memberName)}</div>`;
+                }
 
                 container.insertAdjacentHTML('beforeend', `
                     <div class="feed-card ${border}">
@@ -1456,13 +1614,13 @@
                         <div class="feed-header">
                             <img src="${i.memberPhoto}" class="feed-avatar">
                             <div>
-                                <div class="feed-title">${escapeHtml(i.memberName)}</div>
-                                <div class="feed-meta">${new Date(i.date).toLocaleDateString()}</div>
+                                ${nameDisplayHtml}
+                                <div class="feed-meta" style="font-size:0.8rem; color:#777; margin-top:2px;">${new Date(i.date).toLocaleDateString()}</div>
                             </div>
                         </div>
                         <div>
                             <strong>${escapeHtml(i.event)}</strong><br>
-                            Char: <span style="color:${activeHistoryType==='trainee'?'var(--sky-blue)':'var(--primary)'}">${escapeHtml(i.char)}</span>
+                            ${i.participants && i.participants.length > 0 ? '' : `Char: <span style="color:${activeHistoryType==='trainee'?'var(--sky-blue)':'var(--primary)'}">${escapeHtml(i.char)}</span>`}
                             ${judgesInfo}
                         </div>
                         ${img}
@@ -1476,7 +1634,6 @@
 
         function renderLeaderboard(type) { 
             const list = document.getElementById(type === 'official' ? 'leaderboard-official' : 'leaderboard-trainee'); 
-            // Clear content (remove skeleton if exist)
             list.innerHTML = ""; 
             
             let fMembers = members.filter(m => (m.status || 'official') === type);
@@ -1510,7 +1667,6 @@
             // EDIT FORM PREFILL
             document.getElementById('editId').value = m.id; document.getElementById('editName').value = m.name; document.getElementById('editBio').value = m.bio || ""; document.getElementById('editIg').value = m.ig || ""; document.getElementById('editRole').value = m.role || ""; document.getElementById('editStatus').value = st;
             
-            // PREFILL WA
             document.getElementById('editWa').value = m.wa || "";
             document.getElementById('editWaPrivacy').value = m.waPrivacy || "hidden";
 
@@ -1523,20 +1679,17 @@
             document.getElementById('p-stat-comp').innerText = m.history ? m.history.filter(h => h.category === 'Cosplay Competition' || h.category === 'Coscom').length : 0;
             const igBadge = document.getElementById('p-ig'); if(m.ig) { igBadge.href = m.ig.startsWith('http') ? m.ig : 'https://instagram.com/' + m.ig.replace('@',''); igBadge.style.display = 'inline-flex'; } else igBadge.style.display = 'none';
 
-            // --- WA BUTTON LOGIC ---
             const waBtn = document.getElementById('p-wa');
             let showWa = false;
             if (m.waPrivacy === 'public') showWa = true;
-            if (isAdmin || isOwner) showWa = true; // Admin/Owner always see
+            if (isAdmin || isOwner) showWa = true; 
 
             if (m.wa && showWa) {
-                // Formatting 08 -> 628
                 let num = m.wa.toString();
                 if(num.startsWith('0')) num = '62' + num.substring(1);
                 waBtn.href = `https://wa.me/${num}`;
                 waBtn.style.display = 'inline-flex';
                 
-                // Visual cue for hidden but visible to admin
                 if(m.waPrivacy === 'hidden' && (isAdmin || isOwner)) {
                     waBtn.innerHTML = '<i class="fas fa-lock"></i> WhatsApp (Hidden)';
                     waBtn.style.background = '#555';
@@ -1580,13 +1733,59 @@
             switchView('profile');
         }
 
-        // --- LIGHTBOX FUNCTIONS ---
         function openLightbox(src) { document.getElementById('lightboxImg').src = src; document.getElementById('lightbox').style.display = 'flex'; }
         function closeLightbox() { document.getElementById('lightbox').style.display = 'none'; }
         document.getElementById('lightbox').addEventListener('click', function(e) { if(e.target === this) closeLightbox(); });
 
+        function toggleTeammateInput() {
+            const format = document.getElementById('winFormat').value;
+            const section = document.getElementById('teammatesSection');
+            const container = document.getElementById('teammatesContainer');
+            
+            if (format === 'Single') {
+                section.classList.add('hidden');
+                container.innerHTML = ''; 
+            } else {
+                section.classList.remove('hidden');
+                if (container.innerHTML === '') addTeammateInput();
+            }
+        }
+
+        function addTeammateInput() {
+            const container = document.getElementById('teammatesContainer');
+            const id = Date.now();
+            let options = `<option value="">-- Pilih Member --</option>`;
+            members.forEach(m => { options += `<option value="${m.id}">${escapeHtml(m.name)}</option>`; });
+
+            const html = `
+                <div id="tm-row-${id}" class="teammate-row">
+                    <select class="tm-type-select" onchange="toggleTmInputType(this)" style="flex:0.4;">
+                        <option value="member">Member</option>
+                        <option value="guest">Non-Member</option>
+                    </select>
+                    <div class="tm-input-wrapper" style="flex:1;">
+                        <select class="tm-member-select">${options}</select>
+                        <input type="text" class="tm-guest-input hidden" placeholder="Nama Partner...">
+                    </div>
+                    <input type="text" class="tm-char-input" placeholder="Karakter Partner..." style="flex:0.8; margin:0;">
+                    <button onclick="document.getElementById('tm-row-${id}').remove()" style="background:red; color:white; border:none; border-radius:5px; width:30px;"><i class="fas fa-times"></i></button>
+                </div>`;
+            container.insertAdjacentHTML('beforeend', html);
+        }
+
+        function toggleTmInputType(select) {
+            const row = select.parentElement;
+            const memberSelect = row.querySelector('.tm-member-select');
+            const guestInput = row.querySelector('.tm-guest-input');
+            if (select.value === 'member') { memberSelect.classList.remove('hidden'); guestInput.classList.add('hidden'); } 
+            else { memberSelect.classList.add('hidden'); guestInput.classList.remove('hidden'); }
+        }
+
         function openModalWin() { 
             document.getElementById('winEditId').value = ""; document.getElementById('winEvent').value = ""; document.getElementById('winChar').value = ""; document.getElementById('winDate').value = ""; document.getElementById('winJudges').value = ""; document.getElementById('winBestTitle').value = ""; document.getElementById('winMember').disabled = false; document.getElementById('btnSaveWin').innerText = "Simpan Data";
+
+            document.getElementById('winFormat').value = "Single";
+            toggleTeammateInput();
 
             const sel = document.getElementById('winMember'); sel.innerHTML = ""; 
             if(isAdmin) { members.forEach(m => sel.innerHTML += `<option value="${m.id}">${escapeHtml(m.name)}</option>`); } 
@@ -1600,6 +1799,11 @@
              const sel = document.getElementById('winMember'); sel.innerHTML = ""; members.forEach(mem => sel.innerHTML += `<option value="${mem.id}">${escapeHtml(mem.name)}</option>`);
              document.getElementById('winEditId').value = hid; document.getElementById('winMember').value = mid; document.getElementById('winMember').disabled = true;
              document.getElementById('winEvent').value = h.event; document.getElementById('winCat').value = h.category; document.getElementById('winChar').value = h.char; document.getElementById('winDate').value = h.date.split('T')[0]; document.getElementById('winRank').value = h.rank; document.getElementById('winJudges').value = h.judges || "";
+             
+             document.getElementById('teammatesSection').classList.add('hidden');
+             document.getElementById('winFormat').value = 'Single';
+             document.getElementById('winFormat').disabled = true; 
+
              if (h.rank === 'Best') { document.getElementById('divBestTitle').classList.remove('hidden'); document.getElementById('winBestTitle').value = h.bestTitle; } else { document.getElementById('divBestTitle').classList.add('hidden'); }
              document.getElementById('btnSaveWin').innerText = "Update Data"; openModal('modalWin');
         }
@@ -1608,39 +1812,132 @@
         
         function saveEditProfile() { 
             const id = document.getElementById('editId').value; const m = members.find(x => x.id == id); const file = document.getElementById('editPhoto').files[0];
+            setLoading('btnSaveProfile', true, 'Menyimpan...');
+
             const finalize = (p) => { 
                 m.name = document.getElementById('editName').value; m.bio = document.getElementById('editBio').value; m.ig = document.getElementById('editIg').value; m.role = document.getElementById('editRole').value; 
-                
-                // SAVE WA
                 m.wa = document.getElementById('editWa').value;
                 m.waPrivacy = document.getElementById('editWaPrivacy').value;
-
                 if(isAdmin) m.status = document.getElementById('editStatus').value;
                 if(isAdmin) m.topAchievement = document.getElementById('editTopAchievement').value;
-
-                if(p) m.photo = p; m.repertoire = [...currentTempRepertoire]; db.collection("members").doc(id).set(m).then(() => { closeModal('modalEdit'); openProfile(id); });
+                if(p) m.photo = p; m.repertoire = [...currentTempRepertoire]; 
+                
+                db.collection("members").doc(id).set(m).then(() => { 
+                    closeModal('modalEdit'); 
+                    openProfile(id); 
+                    setLoading('btnSaveProfile', false, 'Update Profil');
+                });
             };
             if(file) { const r = new FileReader(); r.onload = (e) => finalize(e.target.result); r.readAsDataURL(file); } else finalize(null);
         }
 
-        function submitWin() {
-            const id = document.getElementById('winMember').value; const editId = document.getElementById('winEditId').value;
-            if (!isAdmin && (!currentUser || currentUser.uid !== id)) { alert("Hanya bisa input punya sendiri!"); return; }
+        async function submitWin() {
+            const btn = document.getElementById('btnSaveWin');
+            setLoading('btnSaveWin', true, 'Memproses...');
             
-            const event = document.getElementById('winEvent').value; const cat = document.getElementById('winCat').value; const char = document.getElementById('winChar').value; const rank = document.getElementById('winRank').value; const proof = document.getElementById('winProof').files[0];
-            if(!event || !char) { alert("Lengkapi data!"); return; }
-            
-            const save = (p) => { 
-                const m = members.find(x=>x.id==id); 
-                if(!m.history) m.history=[]; 
-                if (editId) {
-                    const idx = m.history.findIndex(h => h.id == editId);
-                    if (idx > -1) { m.history[idx].event = event; m.history[idx].category = cat; m.history[idx].char = char; m.history[idx].rank = rank; m.history[idx].judges = document.getElementById('winJudges').value; m.history[idx].bestTitle = (rank==='Best'?document.getElementById('winBestTitle').value:null); m.history[idx].date = document.getElementById('winDate').value || new Date().toISOString(); if (p) m.history[idx].proof = p; }
-                } else { m.history.unshift({id: Date.now()+Math.random().toString(), event, category: cat, char, rank, judges: document.getElementById('winJudges').value, bestTitle: (rank==='Best'?document.getElementById('winBestTitle').value:null), proof: p, date: document.getElementById('winDate').value||new Date().toISOString() }); }
-                if(!m.repertoire) m.repertoire=[]; if(!m.repertoire.includes(char)) m.repertoire.push(char); 
-                db.collection("members").doc(id).set(m).then(() => closeModal('modalWin')); 
-            };
-            if(proof) { const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.src = e.target.result; i.onload = () => { const c = document.createElement('canvas'); const x = c.getContext('2d'); const M = 500; let w=i.width,h=i.height; if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} c.width=w; c.height=h; x.drawImage(i,0,0,w,h); save(c.toDataURL('image/jpeg',0.6)); } }; r.readAsDataURL(proof); } else save(null);
+            await new Promise(r => setTimeout(r, 50));
+
+            try {
+                const mainId = document.getElementById('winMember').value;
+                const editId = document.getElementById('winEditId').value;
+
+                if (!mainId) throw new Error("Pilih member utama!");
+                if (!isAdmin && (!currentUser || currentUser.uid !== mainId)) { throw new Error("Hanya bisa input punya sendiri!"); }
+                
+                const event = document.getElementById('winEvent').value;
+                const cat = document.getElementById('winCat').value;
+                const char = document.getElementById('winChar').value;
+                const rank = document.getElementById('winRank').value;
+                const proof = document.getElementById('winProof').files[0];
+                const format = document.getElementById('winFormat').value;
+                const judges = document.getElementById('winJudges').value;
+                const bestTitle = rank === 'Best' ? document.getElementById('winBestTitle').value : null;
+                const dateVal = document.getElementById('winDate').value || new Date().toISOString();
+                
+                if(!event || !char) { throw new Error("Nama Event dan Karakter wajib diisi!"); }
+
+                let participants = [];
+                const mainMember = members.find(m => m.id === mainId);
+                if (!mainMember) throw new Error("Data member Anda belum terload sempurna. Coba refresh halaman.");
+                
+                participants.push({ type: 'member', id: mainId, name: mainMember.name, char: char });
+
+                if (format !== 'Single') {
+                    const rows = document.querySelectorAll('.teammate-row');
+                    rows.forEach(row => {
+                        const type = row.querySelector('.tm-type-select').value;
+                        const charInput = row.querySelector('.tm-char-input').value; 
+                        
+                        if (type === 'member') {
+                            const mid = row.querySelector('.tm-member-select').value;
+                            if (mid) {
+                                const mm = members.find(m => m.id === mid);
+                                if (!mm) throw new Error("Data partner belum termuat. Cek koneksi.");
+                                if (!participants.find(p => p.id === mid)) {
+                                    participants.push({ type: 'member', id: mid, name: mm.name, char: charInput });
+                                }
+                            }
+                        } else {
+                            const name = row.querySelector('.tm-guest-input').value;
+                            if (name) { participants.push({ type: 'guest', name: name, char: charInput }); }
+                        }
+                    });
+                }
+
+                const processSave = async (proofUrl) => {
+                    const uniqueWinId = editId || (Date.now() + Math.random().toString());
+                    const winDataTemplate = { id: uniqueWinId, winId: uniqueWinId, event, category: cat, rank, judges, bestTitle, date: dateVal, participants: participants, proof: proofUrl };
+                    const memberIdsToWrite = participants.filter(pt => pt.type === 'member').map(pt => pt.id);
+
+                    const snapshotPromises = memberIdsToWrite.map(id => db.collection("members").doc(id).get());
+                    const snapshots = await Promise.all(snapshotPromises);
+                    const batch = db.batch();
+
+                    snapshots.forEach((doc) => {
+                        if (!doc.exists) return; 
+                        const mData = doc.data(); const mRef = db.collection("members").doc(doc.id);
+                        let history = mData.history || []; let repertoire = mData.repertoire || [];
+                        
+                        const myPartData = participants.find(p => p.id === doc.id);
+                        const myChar = myPartData ? (myPartData.char || char) : char;
+                        
+                        const myWinData = { ...winDataTemplate, char: myChar };
+
+                        if (editId) {
+                            const idx = history.findIndex(h => h.id == editId || h.winId == editId);
+                            if (idx > -1) { myWinData.proof = proofUrl || history[idx].proof; history[idx] = myWinData; }
+                        } else { history.unshift(myWinData); }
+
+                        if (myChar && !repertoire.includes(myChar)) { repertoire.push(myChar); }
+                        batch.update(mRef, { history: history, repertoire: repertoire });
+                    });
+                    await batch.commit();
+                    alert("Berhasil! Data tersimpan.");
+                    closeModal('modalWin');
+                    setLoading('btnSaveWin', false, 'Simpan Data');
+                };
+
+                if (proof) {
+                    const r = new FileReader();
+                    r.onload = (e) => {
+                        const i = new Image(); i.src = e.target.result;
+                        i.onload = () => {
+                            const c = document.createElement('canvas'); const ctx = c.getContext('2d');
+                            const MAX = 400; let w = i.width, h = i.height;
+                            if (w > h) { if (w > MAX) { h *= MAX / w; w = MAX; } } else { if (h > MAX) { w *= MAX / h; h = MAX; } }
+                            c.width = w; c.height = h; ctx.drawImage(i, 0, 0, w, h);
+                            processSave(c.toDataURL('image/jpeg', 0.5)); 
+                        };
+                    };
+                    r.readAsDataURL(proof);
+                } else {
+                    processSave(null);
+                }
+
+            } catch (error) {
+                alert("Gagal Menyimpan: " + error.message);
+                setLoading('btnSaveWin', false, 'Simpan Data');
+            }
         }
 
         function uploadGalleryPhoto(inp) { const f = inp.files[0]; if(!f) return; const r = new FileReader(); r.onload = (e) => { const i = new Image(); i.src = e.target.result; i.onload = () => { const c = document.createElement('canvas'); const x = c.getContext('2d'); const M = 500; let w=i.width,h=i.height; if(w>h){if(w>M){h*=M/w;w=M}}else{if(h>M){w*=M/h;h=M}} c.width=w; c.height=h; x.drawImage(i,0,0,w,h); const u = c.toDataURL('image/jpeg',0.6); const id = document.getElementById('editId').value; const m = members.find(x=>x.id==id); if(!m.gallery) m.gallery=[]; m.gallery.push(u); db.collection("members").doc(id).set(m).then(()=>openProfile(id)); } }; r.readAsDataURL(f); inp.value=""; }
@@ -1656,7 +1953,7 @@
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         document.addEventListener('contextmenu', e => e.preventDefault());
         function renderAll() { 
-            renderAboutTeam(); // UPDATE FOTO TEAM di HOME
+            renderAboutTeam(); 
             if(document.getElementById('view-official').classList.contains('active')) { renderLeaderboard('official'); prepareHistoryData('official'); }
             if(document.getElementById('view-trainee').classList.contains('active')) { renderLeaderboard('trainee'); prepareHistoryData('trainee'); }
             if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value); 
@@ -1665,8 +1962,6 @@
         }
         window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
 
-        // --- VISITOR & GEO ANALYTICS LOGIC ---
-        
         async function trackVisitor() {
             if (sessionStorage.getItem('visited_this_session')) { loadVisitorStats(); return; }
             sessionStorage.setItem('visited_this_session', 'true');
@@ -1690,7 +1985,6 @@
         function loadVisitorStats() {
             db.collection('analytics').doc('visitors').onSnapshot(doc => { if (doc.exists) { animateValue("totalVisitorCount", 0, doc.data().total || 0, 2000); } });
             db.collection('analytics').doc('geo_data').onSnapshot(doc => { 
-                // Remove Skeleton Logic
                 const list = document.getElementById('geoList');
                 if (doc.exists) { renderGeoStats(doc.data()); } else { list.innerHTML = "<small>Belum ada data.</small>"; }
             });
@@ -1716,5 +2010,3 @@
     </script>
 </body>
 </html>
-
-
