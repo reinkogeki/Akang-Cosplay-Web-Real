@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Akang Cosplay - Official App</title>
+
+<!-- FAVICON AKANG COSPLAY -->
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="shortcut icon" href="favicon.png">
+<link rel="apple-touch-icon" href="favicon.png">
+
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -765,6 +771,54 @@ body, header {
 /* mouse position glow tracking */
 .leaderboard-card:hover {
     cursor: pointer;
+}
+
+
+/* ===== AKANG EVENTS CONSISTENT TITLE STYLE ===== */
+
+/* Force consistent font & color regardless of mode */
+.akang-events-title {
+    font-family: 'Hard Race', 'League Spartan', system-ui, sans-serif !important;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #a855f7 !important; /* purple */
+    text-transform: uppercase;
+}
+
+/* Prevent mode styles from overriding */
+header.gamers-mode .akang-events-title,
+header.trainee-mode .akang-events-title,
+body.mode-gamers .akang-events-title,
+body.mode-trainee .akang-events-title,
+body.mode-official .akang-events-title {
+    color: #a855f7 !important;
+}
+
+
+/* ===== FORCE AKANG EVENTS BRAND STYLE (FINAL FIX) ===== */
+#akangEventsTitle.akang-events-title {
+    font-family: 'Hard Race', 'League Spartan', system-ui, sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    color: #a855f7 !important; /* purple brand */
+    text-shadow:
+        0 0 8px rgba(168,85,247,0.35),
+        0 2px 0 rgba(0,0,0,0.35) !important;
+}
+
+/* Cancel ALL header mode overrides */
+header.gamers-mode #akangEventsTitle,
+header.trainee-mode #akangEventsTitle,
+header.mode-official #akangEventsTitle,
+body.mode-gamers #akangEventsTitle,
+body.mode-trainee #akangEventsTitle,
+body.mode-official #akangEventsTitle {
+    color: #a855f7 !important;
+    text-shadow:
+        0 0 8px rgba(168,85,247,0.35),
+        0 2px 0 rgba(0,0,0,0.35) !important;
+    filter: none !important;
 }
 
 </style>
@@ -2498,6 +2552,263 @@ document.querySelectorAll('.leaderboard-card').forEach(card => {
         card.style.setProperty('--x', x + '%');
         card.style.setProperty('--y', y + '%');
     });
+});
+</script>
+
+
+<!-- ===== IMPROVED FIRST VISIT TUTORIAL ===== -->
+<div id="introTutorial" style="
+position:fixed;
+inset:0;
+background:rgba(0,0,0,0.65);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:9999;
+backdrop-filter:blur(6px);
+">
+  <div style="
+  max-width:520px;" class="tutorial-card
+  width:90%;
+  background:#1f2430;
+  border-radius:14px;
+  padding:28px;
+  text-align:center;
+  box-shadow:0 20px 60px rgba(0,0,0,0.6);
+  border:1px solid rgba(255,255,255,0.08);
+  ">
+    
+    <h2 style="margin-bottom:10px;color:#ff4757;"><span class="tutorial-title">Selamat Datang</span></h2>
+
+    <p style="opacity:0.85;line-height:1.6;margin-bottom:16px;">
+      <span class="tutorial-body"></span>
+    </p>
+
+    <div style="text-align:left;margin:18px 0;">
+      <p>💬 <b>Mulai Percakapan</b> — coba chat atau DM Instagram <b>@akangcosplay</b> untuk berkenalan</p>
+      <p>⚔️ <b>Akang Trainee</b> — belajar dan berkembang bersama</p>
+      <p>🎮 <b>Akang Gamers</b> — ruang santai & hiburan komunitas</p>
+      <p>🏆 <b>Leaderboard</b> — lihat perkembangan member aktif</p>
+    </div>
+
+    <p style="opacity:0.75;margin-bottom:22px;">
+      Kamu bebas menjelajah dulu. Jika merasa cocok, kamu selalu bisa bergabung kapan saja.
+    </p>
+
+    <button onclick="closeIntroTutorial()" style="
+      padding:10px 18px;
+      border:none;
+      border-radius:10px;
+      background:#ff4757;
+      color:white;
+      font-weight:700;
+      cursor:pointer;
+    ">
+      Mulai Jelajahi 🚀
+    </button>
+
+  </div>
+</div>
+
+<script>
+function closeIntroTutorial(){
+    document.getElementById("introTutorial").style.display="none";
+    
+}
+
+window.addEventListener("DOMContentLoaded",()=>{
+    
+    if(true){
+        document.getElementById("introTutorial").style.display="flex";
+    }
+});
+</script>
+
+
+<!-- ===== SOFT FADE TUTORIAL UPGRADE ===== -->
+<style>
+#introTutorial {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#introTutorial.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#introTutorial.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+#introTutorial .tutorial-card {
+    transform: translateY(20px);
+    transition: transform 0.6s ease;
+}
+
+#introTutorial.show .tutorial-card {
+    transform: translateY(0);
+}
+
+/* ===== AKANG EVENTS CONSISTENT TITLE STYLE ===== */
+
+/* Force consistent font & color regardless of mode */
+.akang-events-title {
+    font-family: 'Hard Race', 'League Spartan', system-ui, sans-serif !important;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #a855f7 !important; /* purple */
+    text-transform: uppercase;
+}
+
+/* Prevent mode styles from overriding */
+header.gamers-mode .akang-events-title,
+header.trainee-mode .akang-events-title,
+body.mode-gamers .akang-events-title,
+body.mode-trainee .akang-events-title,
+body.mode-official .akang-events-title {
+    color: #a855f7 !important;
+}
+
+
+/* ===== FORCE AKANG EVENTS BRAND STYLE (FINAL FIX) ===== */
+#akangEventsTitle.akang-events-title {
+    font-family: 'Hard Race', 'League Spartan', system-ui, sans-serif !important;
+    font-weight: 800 !important;
+    letter-spacing: 2px !important;
+    text-transform: uppercase !important;
+    color: #a855f7 !important; /* purple brand */
+    text-shadow:
+        0 0 8px rgba(168,85,247,0.35),
+        0 2px 0 rgba(0,0,0,0.35) !important;
+}
+
+/* Cancel ALL header mode overrides */
+header.gamers-mode #akangEventsTitle,
+header.trainee-mode #akangEventsTitle,
+header.mode-official #akangEventsTitle,
+body.mode-gamers #akangEventsTitle,
+body.mode-trainee #akangEventsTitle,
+body.mode-official #akangEventsTitle {
+    color: #a855f7 !important;
+    text-shadow:
+        0 0 8px rgba(168,85,247,0.35),
+        0 2px 0 rgba(0,0,0,0.35) !important;
+    filter: none !important;
+}
+
+</style>
+
+<script>
+function closeIntroTutorial(){
+    const modal = document.getElementById("introTutorial");
+    modal.classList.remove("show");
+    modal.classList.add("hide");
+
+    setTimeout(()=>{
+        modal.style.display="none";
+    },600);
+
+    
+}
+
+window.addEventListener("load",()=>{
+    
+    const modal = document.getElementById("introTutorial");
+
+    if(!seen && modal){
+        modal.style.display="flex";
+
+        // delay appearance so it feels natural after page loads
+        setTimeout(()=>{
+            modal.classList.add("show");
+        },800);
+    }
+});
+</script>
+
+
+<!-- ===== SMART ONBOARDING SYSTEM (First / Second / Returning) ===== -->
+<script>
+
+const onboardingMessages = {
+    first: {
+        title: "Selamat Datang di Akang Cosplay 🎭",
+        body: `
+        Akang Cosplay adalah sebuah <b>team cosplay</b> yang berkembang bersama,
+        bukan komunitas terbuka pada umumnya.
+        <br><br>
+        <div style="text-align:left;line-height:1.7;">
+        🎭 <b>Official Team</b> — Rein, Nabilla, dan Ian/Kanekian<br>
+        ⚔️ <b>Akang Trainee</b> — tempat belajar & berkembang sebelum menjadi bagian team<br>
+        🎮 <b>Akang Gamers</b> — ruang santai dan interaksi komunitas<br>
+        🏆 <b>Leaderboard</b> — melihat perjalanan dan progres member
+        </div>
+        <br>
+        Kamu bebas menjelajah terlebih dahulu. Jika tertarik berkembang bersama,
+        perjalanan selalu dimulai dari <b>Akang Trainee</b>.
+        `
+    },
+    second: {
+        title: "Mulai Eksplorasi 🚀",
+        body: `
+        Coba buka <b>Akang Trainee</b> untuk melihat bagaimana perjalanan berkembang dimulai.
+        Setiap member memiliki proses sebelum menjadi bagian dari Official Team.
+        <br><br>
+        Kamu juga bisa melihat aktivitas santai di <b>Akang Gamers</b>.
+        `
+    },
+    returning: {
+        title: "Selamat Datang Kembali ⚔️",
+        body: `
+        Lihat perkembangan terbaru team dan trainee,
+        cek leaderboard, atau lanjutkan eksplorasimu.
+        Setiap kunjungan adalah bagian dari perjalanan.
+        `
+    }
+};
+
+
+function getVisitType(){
+    let visits = parseInt(localStorage.getItem("akang_visit_count") || "0");
+    visits++;
+    localStorage.setItem("akang_visit_count", visits);
+
+    if(visits === 1) return "first";
+    if(visits === 2) return "second";
+    return "returning";
+}
+
+function showOnboarding(){
+    const modal = document.getElementById("introTutorial");
+    if(!modal) return;
+
+    const visitType = getVisitType();
+    const msg = onboardingMessages[visitType];
+
+    modal.querySelector(".tutorial-title").innerText = msg.title;
+    modal.querySelector(".tutorial-body").innerHTML = msg.body;
+
+    modal.style.display = "flex";
+
+    setTimeout(()=>{
+        modal.classList.add("show");
+    },600);
+}
+
+function closeIntroTutorial(){
+    const modal = document.getElementById("introTutorial");
+    modal.classList.remove("show");
+
+    setTimeout(()=>{
+        modal.style.display="none";
+    },600);
+}
+
+window.addEventListener("load", ()=>{
+    showOnboarding();
 });
 </script>
 
