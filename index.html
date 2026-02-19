@@ -812,6 +812,69 @@ body, header {
     text-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
 }
 
+/* =========================================
+   DIVISION CURSOR GLOW COLOR FIX (AUTO PATCH)
+========================================= */
+
+/* TRAINEE — CYAN NEON */
+#view-trainee .leaderboard-card::before {
+    background: radial-gradient(
+        circle at var(--x,50%) var(--y,50%),
+        rgba(0,229,255,0.28),
+        transparent 60%
+    ) !important;
+}
+
+/* GAMERS — GOLD */
+#view-gamers .leaderboard-card::before {
+    background: radial-gradient(
+        circle at var(--x,50%) var(--y,50%),
+        rgba(255,215,0,0.30),
+        transparent 60%
+    ) !important;
+}
+
+#introTutorial {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+#introTutorial.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+#introTutorial.hide {
+    opacity: 0;
+    visibility: hidden;
+}
+
+#introTutorial .tutorial-card {
+    transform: translateY(20px);
+    transition: transform 0.6s ease;
+}
+
+#introTutorial.show .tutorial-card {
+    transform: translateY(0);
+}
+
+        /* === TEMA PROFIL AKANG GAMERS (NAVY & GOLD) === */
+        .gamer-profile-header {
+            background: linear-gradient(135deg, #0a192f, #172a45) !important; /* Biru Dongker */
+            border: 1px solid var(--gold) !important;
+            box-shadow: 0 8px 32px rgba(255, 215, 0, 0.15) !important;
+        }
+        .gamer-profile-header h2 { color: var(--gold) !important; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+        .gamer-profile-pic { border: 3px solid var(--gold) !important; background: #0a192f !important; }
+        
+        .yt-video-card { background: var(--dark); border: 1px solid var(--accent-blue); border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .yt-video-card iframe { width: 100%; aspect-ratio: 16/9; border: none; }
+        .yt-video-info { padding: 12px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; }
+        .yt-video-title { color: white; font-size: 0.95rem; font-weight: bold; margin: 0; }
+        
+        .checkbox-game-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #444; }
+        .checkbox-game-item input { width: 20px; height: 20px; margin: 0; }
 </style>
 </head>
 <body>
@@ -997,21 +1060,30 @@ body, header {
             
             <div class="feed-card" style="border-left-color: var(--accent-blue);">
                 <h3 style="margin-top:0;">Apa itu Akang Gamers?</h3>
-                <p style="font-size: 0.9rem; line-height: 1.5; color: #ddd; margin-bottom: 0;">Akang Gamers adalah wadah seru-seruan dimana <b>Rein</b> dan <b>Nabilla</b> melakukan live streaming sambil main game dan ngobrol santai bareng para viewers. Walaupun kami cosplayer, kami juga suka mabar! Yuk gabung ke stream kami, jangan lupa bawa cemilan ya!</p>
+                <p style="font-size: 0.9rem; line-height: 1.5; color: #ddd; margin-bottom: 0;">Akang Gamers adalah wadah seru-seruan dimana <b>Rein</b> dan <b>Nabilla</b> melakukan live streaming sambil main game dan ngobrol santai bareng para viewers. Walaupun kami cosplayer, kami juga suka mabar! Yuk gabung ke stream kami!</p>
             </div>
 
             <div style="display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap;">
-                <div class="leaderboard-card glass-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-rein" class="profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px; border-color: var(--accent-blue);">
+                <div class="leaderboard-card glass-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px; cursor: pointer;" onclick="openGamerProfileByName('rein')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-rein" class="profile-pic gamer-profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px;">
                     <h3 style="margin: 0; color: var(--gold);">Rein</h3>
                     <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0 0 0;"><i class="fas fa-headset"></i> Streamer / Player</p>
                 </div>
 
-                <div class="leaderboard-card glass-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-nabilla" class="profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px; border-color: var(--purple);">
+                <div class="leaderboard-card glass-card" style="flex: 1; min-width: 250px; flex-direction: column; align-items: center; text-align: center; padding: 25px 15px; cursor: pointer;" onclick="openGamerProfileByName('nabilla')">
+                    <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" id="img-gamer-nabilla" class="profile-pic gamer-profile-pic" style="width: 90px; height: 90px; margin-bottom: 10px;">
                     <h3 style="margin: 0; color: var(--gold);">Nabilla</h3>
                     <p style="font-size: 0.8rem; color: #aaa; margin: 5px 0 0 0;"><i class="fas fa-headset"></i> Streamer / Player</p>
                 </div>
+            </div>
+
+            <div class="stage-section" style="margin-top: 30px; border: 1px solid var(--accent-blue);">
+                <h2 class="stage-title" style="color: var(--accent-blue);"><i class="fab fa-youtube"></i> GAMERS STAGE</h2>
+                <button class="admin-only" style="display: none; background: var(--green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; width: 100%; font-weight: bold;" onclick="openModal('modalAddGamerStage')"><i class="fas fa-plus"></i> Tambah Video Stage</button>
+                <div class="cinema-frame" style="border: 2px solid var(--accent-blue);">
+                    <iframe id="iframe-gamer-stage" class="video-iframe" src="" allowfullscreen></iframe>
+                </div>
+                <div id="playlist-gamer-stage" class="playlist-container"></div>
             </div>
 
             <div style="margin-top: 30px; background: rgba(0,0,0,0.2); border-radius: 15px; padding: 20px;">
@@ -1026,17 +1098,45 @@ body, header {
             <div style="text-align: center; margin-top: 25px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 15px;">
                 <p style="color: var(--gold); font-weight: bold; margin-top: 0; margin-bottom: 15px;">Follow Sosmed Akang Gamers:</p>
                 <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
-                    <button onclick="window.open('https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq', '_blank')" style="background: #c4302b; color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
-                        <i class="fab fa-youtube"></i> YouTube
-                    </button>
-                    <button onclick="window.open('https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y', '_blank')" style="background: #000000; color:white; border: 1px solid #444; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
-                        <i class="fab fa-tiktok"></i> TikTok
-                    </button>
-                    <button onclick="window.open('https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z', '_blank')" style="background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;">
-                        <i class="fab fa-instagram"></i> Instagram
-                    </button>
+                    <button onclick="window.open('https://youtube.com/@akanggamers1372?si=_CfkHg0suu_eJqdq', '_blank')" style="background: #c4302b; color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;"><i class="fab fa-youtube"></i> YouTube</button>
+                    <button onclick="window.open('https://www.tiktok.com/@realaffiliate1372?_r=1&_t=ZS-93phwZphl7Y', '_blank')" style="background: #000000; color:white; border: 1px solid #444; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;"><i class="fab fa-tiktok"></i> TikTok</button>
+                    <button onclick="window.open('https://www.instagram.com/akanggamersofc?igsh=OHBtMnBsdGh3N29z', '_blank')" style="background: linear-gradient(45deg, #f09433 0%, #bc1888 100%); color:white; border:none; width: auto; padding: 10px 20px; border-radius: 30px; cursor:pointer; font-weight:bold;"><i class="fab fa-instagram"></i> Instagram</button>
                 </div>
             </div>
+        </div>
+
+        <div id="view-gamer-profile" class="view-section">
+            <button style="background:none; border:none; color:#aaa; cursor:pointer; margin-bottom:10px;" onclick="switchView('gamers'); applyMode('gamers')">
+                <i class="fas fa-arrow-left"></i> Kembali ke Menu Gamers
+            </button>
+            
+            <div class="profile-header gamer-profile-header glass-card">
+                <div id="gamerProfileActionMenu" class="action-menu-container admin-only" style="display:none;">
+                    <button class="btn-action-trigger" onclick="openModalEditGamerProfile()" style="color: var(--gold); border-color: var(--gold);"><i class="fas fa-pen"></i></button>
+                </div>
+                
+                <img src="" id="gp-photo" class="profile-pic gamer-profile-pic">
+                <h2 id="gp-name" style="margin: 10px 0 5px 0;">Nama Gamer</h2>
+                
+                <div style="display:inline-block; padding:3px 10px; border-radius:10px; font-size:0.75rem; margin-bottom:10px; font-weight:bold; border:1px solid var(--accent-blue); color: var(--accent-blue);">OFFICIAL STREAMER</div>
+                <br>
+
+                <a id="gp-yt" href="#" target="_blank" class="social-badge" style="background: #c4302b; display:none;"><i class="fab fa-youtube"></i> YouTube</a>
+                <a id="gp-ig" href="#" target="_blank" class="social-badge" style="background: linear-gradient(45deg, #f09433 0%, #bc1888 100%); display:none;"><i class="fab fa-instagram"></i> Instagram</a>
+                
+                <p id="gp-bio" style="font-style:italic; color:#ccc; margin-top: 10px;">Bio Gamer...</p>
+            </div>
+
+            <h3 style="color: var(--accent-blue);"><i class="fas fa-gamepad"></i> Game Favorit</h3>
+            <div id="gp-games-list" class="game-catalog-grid" style="margin-bottom: 30px;">
+                <p style="color:#777; font-size: 0.9rem;">Belum ada game yang dipilih.</p>
+            </div>
+
+            <h3 style="color: var(--gold); display: flex; justify-content: space-between; align-items: center;">
+                <span><i class="fas fa-video"></i> Video Gameplay</span>
+                <button class="admin-only" style="display:none; background:var(--green); border:none; border-radius:5px; color:white; padding:5px 10px; font-size:0.8rem; cursor:pointer;" onclick="openModal('modalAddGamerVideo')"><i class="fas fa-plus"></i> Tambah</button>
+            </h3>
+            <div id="gp-video-list"></div>
         </div>
 
         <div id="view-events" class="view-section">
@@ -1326,6 +1426,48 @@ body, header {
         </div>
     </div>
 
+    <div id="modalEditGamerProfile" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--gold);"><i class="fas fa-user-edit"></i> Edit Profil Gamer</h3>
+            <input type="hidden" id="gpEditId">
+            <label>Bio Khusus Gamer</label><textarea id="gpEditBio" rows="2" placeholder="Suka main game apa aja..."></textarea>
+            <label>Link YouTube Pribadi</label><input type="text" id="gpEditYt" placeholder="https://youtube.com/...">
+            <label>Link Instagram Pribadi</label><input type="text" id="gpEditIg" placeholder="@username">
+            <label>Foto Profil Gamer Baru</label><input type="file" id="gpEditPhoto" accept="image/*">
+            
+            <hr style="border-color:#444; margin: 15px 0;">
+            <label style="color: var(--accent-blue);">Pilih Game Favorit (dari Katalog)</label>
+            <div id="gpEditGamesContainer" style="background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px; max-height: 150px; overflow-y: auto; border: 1px solid #555;">
+                </div>
+
+            <button class="btn-submit" id="btnSaveGamerProfile" onclick="saveGamerProfile()">Simpan Profil Gamers</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalEditGamerProfile')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalAddGamerStage" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--accent-blue);"><i class="fab fa-youtube"></i> Tambah Video Stage Gamers</h3>
+            <label>Judul Video</label><input type="text" id="stageVidTitle" placeholder="Contoh: Mabar Valorant Seru!">
+            <label>ID YouTube</label>
+            <input type="text" id="stageVidId" placeholder="Contoh: dQw4w9WgXcQ">
+            <small style="color:#aaa;">*Ambil 11 huruf/angka di belakang <b>?v=</b> pada link YouTube.</small>
+            <button class="btn-submit" id="btnSaveStageVid" onclick="saveGamerStageVideo()">Tambahkan Video</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddGamerStage')">Batal</button>
+        </div>
+    </div>
+
+    <div id="modalAddGamerVideo" class="modal">
+        <div class="modal-content">
+            <h3 style="color: var(--gold);"><i class="fas fa-video"></i> Tambah Video Gameplay Pribadi</h3>
+            <label>Judul Video</label><input type="text" id="gpVidTitle" placeholder="Contoh: Montage Layla Maniac">
+            <label>ID YouTube</label>
+            <input type="text" id="gpVidId" placeholder="Contoh: dQw4w9WgXcQ">
+            <button class="btn-submit" id="btnSaveGpVid" onclick="saveGamerPersonalVideo()">Tambahkan Video</button>
+            <button style="margin-top:10px; width:100%; background:none; border:none; color:#aaa;" onclick="closeModal('modalAddGamerVideo')">Batal</button>
+        </div>
+    </div>
+
     <div id="modalBot" class="modal">
         <div class="modal-content" style="padding: 15px; display: flex; flex-direction: column;">
             <h3 style="margin-top:0; margin-bottom: 5px; color:var(--accent-blue); display:flex; justify-content:space-between; flex-shrink: 0;">
@@ -1451,6 +1593,18 @@ body, header {
                 const d = doc.data(); d.id = doc.id; events.push(d); 
             });
             if(document.getElementById('view-events').classList.contains('active')) renderEvents();
+        });
+
+        // --- LOGIKA AKANG GAMERS (PROFIL & STAGE) ---
+        let gamerStageVideos = [];
+        
+        // Listener untuk Gamers Stage Videos
+        db.collection("gamer_stage_videos").orderBy('timestamp', 'desc').onSnapshot((snapshot) => { 
+            gamerStageVideos = []; 
+            snapshot.forEach((doc) => { 
+                const d = doc.data(); d.id = doc.id; gamerStageVideos.push(d); 
+            }); 
+            if(document.getElementById('view-gamers').classList.contains('active')) renderGamerStagePlaylist(); 
         });
 
         // SETTINGS SNAPSHOT (UPDATED TO SUPPORT LOADING LOGO)
@@ -1701,10 +1855,11 @@ body, header {
 
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
 
-            if(view === 'gamers') {
-                document.querySelector('.nav-btn-gamers').classList.add('active'); header.classList.add('gamers-mode'); title.innerText = "AKANG GAMERS"; title.classList.add('title-gamers'); estText.innerText = "EST. 2026";
+            if(view === 'gamers' || view === 'gamer-profile') {
+                if(view === 'gamers') document.querySelector('.nav-btn-gamers').classList.add('active');
+                header.classList.add('gamers-mode'); title.innerText = "AKANG GAMERS"; title.classList.add('title-gamers'); estText.innerText = "EST. 2026";
                 if(gamersLogoUrl) { logo.src = gamersLogoUrl; logo.style.display = "block"; } else if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
-                renderGamers(); 
+                if(view === 'gamers') renderGamers(); 
             } else if(view === 'trainee') {
                 document.querySelector('.nav-btn-trainee').classList.add('active'); header.classList.add('trainee-mode'); title.innerText = "AKANG TRAINEE"; title.classList.remove('title-gamers'); estText.innerText = "FUTURE STARS";
                 if(traineeLogoUrl) { logo.src = traineeLogoUrl; logo.style.display = "block"; } else if(defaultLogoUrl) { logo.src = defaultLogoUrl; logo.style.display = "block"; }
@@ -1772,7 +1927,16 @@ body, header {
         function saveGamersLogo() { compressAndSaveLogo('settingGamersLogo', 'gamers'); }
         function saveTraineeLogo() { compressAndSaveLogo('settingTraineeLogo', 'trainee'); }
 
-        function renderGamers() { let rein = members.find(m => m.name.toLowerCase().includes("rein")); let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla")); if(rein && rein.photo) document.getElementById('img-gamer-rein').src = rein.photo; if(nabilla && nabilla.photo) document.getElementById('img-gamer-nabilla').src = nabilla.photo; renderGames(); }
+        // Update foto Rein & Nabilla di halaman depan Gamers agar pakai foto gamer jika ada
+        function renderGamers() { 
+            let rein = members.find(m => m.name.toLowerCase().includes("rein")); 
+            let nabilla = members.find(m => m.name.toLowerCase().includes("nabilla")); 
+            if(rein) document.getElementById('img-gamer-rein').src = rein.gamerPhoto || rein.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; 
+            if(nabilla) document.getElementById('img-gamer-nabilla').src = nabilla.gamerPhoto || nabilla.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png'; 
+            renderGames(); 
+            renderGamerStagePlaylist();
+        }
+
         function renderGames() { const container = document.getElementById('game-catalog-list'); container.innerHTML = ""; games.forEach(g => { let delBtn = isAdmin ? `<button class="btn-delete-game show-admin" onclick="deleteGame('${g.id}')"><i class="fas fa-trash"></i></button>` : ``; container.innerHTML += `<div class="game-card">${delBtn}<img src="${g.image}" class="game-img" alt="${escapeHtml(g.name)}"><div class="game-title">${escapeHtml(g.name)}</div></div>`; }); if(isAdmin) document.querySelectorAll('.show-admin').forEach(b => b.style.display = 'block'); }
         
         async function submitAddGame() { 
@@ -1801,6 +1965,191 @@ body, header {
         }
         function deleteGame(id) { if(confirm("Hapus game?")) db.collection("games").doc(id.toString()).delete(); }
         
+        // Render Playlist Utama Gamers Stage
+        function renderGamerStagePlaylist() {
+            const container = document.getElementById('playlist-gamer-stage');
+            container.innerHTML = "";
+            if (gamerStageVideos.length === 0) {
+                container.innerHTML = "<p style='text-align:center; color:#777; font-size:0.9rem;'>Belum ada video stage.</p>";
+                document.getElementById('iframe-gamer-stage').src = "";
+                return;
+            }
+            gamerStageVideos.forEach((item, index) => {
+                const thumbUrl = `https://img.youtube.com/vi/${item.ytId}/default.jpg`;
+                const delBtn = isAdmin ? `<button onclick="deleteGamerStageVideo('${item.id}', event)" style="background:red; color:white; border:none; padding:3px 8px; border-radius:3px; cursor:pointer; font-size:0.75rem;">Hapus</button>` : '';
+                container.innerHTML += `
+                    <div class="playlist-item ${index===0?'active':''}" onclick="changeVideo('gamer-stage', '${item.ytId}', this)">
+                        <img src="${thumbUrl}" class="playlist-thumb">
+                        <div class="playlist-info" style="flex:1;">
+                            <strong>${escapeHtml(item.title)}</strong>
+                        </div>
+                        ${delBtn}
+                    </div>
+                `;
+            });
+            changeVideo('gamer-stage', gamerStageVideos[0].ytId, container.querySelector('.playlist-item'));
+        }
+
+        function openGamerProfileByName(nameKey) {
+            const m = members.find(m => m.name.toLowerCase().includes(nameKey));
+            if(m) openGamerProfile(m.id);
+        }
+
+        // Buka Profil Khusus Gamers
+        function openGamerProfile(id) {
+            const m = members.find(x => x.id === id); if(!m) return;
+            
+            // Atur UI Admin
+            let isOwner = (currentUser && currentUser.uid === m.id);
+            document.getElementById('gamerProfileActionMenu').style.display = (isOwner || isAdmin) ? "block" : "none";
+            document.querySelectorAll('#view-gamer-profile .admin-only').forEach(el => el.style.display = (isOwner || isAdmin) ? "block" : "none");
+
+            // Render Info Basic
+            document.getElementById('gpEditId').value = m.id;
+            document.getElementById('gp-photo').src = m.gamerPhoto || m.photo || 'https://cdn-icons-png.flaticon.com/512/847/847969.png';
+            document.getElementById('gp-name').innerText = m.name;
+            document.getElementById('gp-bio').innerText = m.gamerBio || "Belum ada bio gamer.";
+            
+            // Sosmed
+            const ytBadge = document.getElementById('gp-yt');
+            if(m.gamerYt) { ytBadge.href = m.gamerYt.startsWith('http') ? m.gamerYt : 'https://youtube.com/' + m.gamerYt; ytBadge.style.display = 'inline-flex'; } else ytBadge.style.display = 'none';
+            const igBadge = document.getElementById('gp-ig');
+            if(m.gamerIg) { igBadge.href = m.gamerIg.startsWith('http') ? m.gamerIg : 'https://instagram.com/' + m.gamerIg.replace('@',''); igBadge.style.display = 'inline-flex'; } else igBadge.style.display = 'none';
+
+            // Render Game Favorit (filter dari katalog utama)
+            const gamesList = document.getElementById('gp-games-list');
+            gamesList.innerHTML = "";
+            if(m.playedGames && m.playedGames.length > 0) {
+                m.playedGames.forEach(gameId => {
+                    const g = games.find(x => x.id === gameId);
+                    if(g) gamesList.innerHTML += `<div class="game-card"><img src="${g.image}" class="game-img"><div class="game-title">${escapeHtml(g.name)}</div></div>`;
+                });
+            } else {
+                gamesList.innerHTML = "<p style='color:#777; font-size: 0.9rem; grid-column: 1 / -1;'>Belum ada game favorit.</p>";
+            }
+
+            // Render Video Gameplay
+            const vidList = document.getElementById('gp-video-list');
+            vidList.innerHTML = "";
+            if(m.gameplays && m.gameplays.length > 0) {
+                m.gameplays.forEach((v, idx) => {
+                    const delBtn = (isOwner || isAdmin) ? `<button onclick="deleteGamerPersonalVideo('${m.id}', ${idx})" style="background:none; border:none; color:var(--danger); font-size:1.1rem; cursor:pointer;"><i class="fas fa-trash"></i></button>` : '';
+                    vidList.innerHTML += `
+                        <div class="yt-video-card">
+                            <iframe src="https://www.youtube.com/embed/${v.ytId}" allowfullscreen></iframe>
+                            <div class="yt-video-info">
+                                <span class="yt-video-title">${escapeHtml(v.title)}</span>
+                                ${delBtn}
+                            </div>
+                        </div>`;
+                });
+            } else {
+                vidList.innerHTML = "<p style='color:#777; font-size: 0.9rem;'>Belum ada video gameplay yang diunggah.</p>";
+            }
+
+            // Pindah View
+            switchView('gamer-profile');
+        }
+
+        // Buka Form Edit Profil Gamers
+        function openModalEditGamerProfile() {
+            const id = document.getElementById('gpEditId').value;
+            const m = members.find(x => x.id === id);
+            if(!m) return;
+            
+            document.getElementById('gpEditBio').value = m.gamerBio || "";
+            document.getElementById('gpEditYt').value = m.gamerYt || "";
+            document.getElementById('gpEditIg').value = m.gamerIg || m.ig || "";
+            
+            // Render Checkbox list game mabar
+            const gamesContainer = document.getElementById('gpEditGamesContainer');
+            gamesContainer.innerHTML = "";
+            games.forEach(g => {
+                const isChecked = (m.playedGames && m.playedGames.includes(g.id)) ? "checked" : "";
+                gamesContainer.innerHTML += `
+                    <div class="checkbox-game-item">
+                        <input type="checkbox" id="chk-game-${g.id}" value="${g.id}" class="chk-played-game" ${isChecked}>
+                        <label for="chk-game-${g.id}" style="color: #ddd; font-weight:normal; margin:0;">${escapeHtml(g.name)}</label>
+                    </div>`;
+            });
+
+            openModal('modalEditGamerProfile');
+        }
+
+        // Simpan Profil Gamers
+        async function saveGamerProfile() {
+            const id = document.getElementById('gpEditId').value;
+            const m = members.find(x => x.id === id);
+            const file = document.getElementById('gpEditPhoto').files[0];
+            
+            setLoading('btnSaveGamerProfile', true, 'Menyimpan...');
+            try {
+                if(file) { m.gamerPhoto = await compressImage(file, 800, 0.8); }
+                m.gamerBio = document.getElementById('gpEditBio').value;
+                m.gamerYt = document.getElementById('gpEditYt').value;
+                m.gamerIg = document.getElementById('gpEditIg').value;
+                
+                // Ambil game yg dicentang
+                m.playedGames = [];
+                document.querySelectorAll('.chk-played-game:checked').forEach(chk => {
+                    m.playedGames.push(chk.value);
+                });
+
+                await db.collection("members").doc(id).set(m);
+                closeModal('modalEditGamerProfile');
+                openGamerProfile(id); // Reload
+                setLoading('btnSaveGamerProfile', false, 'Simpan Profil Gamers');
+            } catch (err) {
+                alert("Gagal: " + err.message);
+                setLoading('btnSaveGamerProfile', false, 'Simpan Profil Gamers');
+            }
+        }
+
+        // Simpan Video ke Stage (Public)
+        async function saveGamerStageVideo() {
+            const title = document.getElementById('stageVidTitle').value;
+            const ytId = document.getElementById('stageVidId').value;
+            if(!title || !ytId) { alert("Isi judul dan ID YouTube!"); return; }
+            
+            setLoading('btnSaveStageVid', true, 'Menyimpan...');
+            try {
+                const newVid = { id: Date.now().toString(), title: title, ytId: ytId, timestamp: firebase.firestore.FieldValue.serverTimestamp() };
+                await db.collection("gamer_stage_videos").doc(newVid.id).set(newVid);
+                closeModal('modalAddGamerStage');
+                document.getElementById('stageVidTitle').value = ""; document.getElementById('stageVidId').value = "";
+                setLoading('btnSaveStageVid', false, 'Tambahkan Video');
+            } catch(e) { alert("Gagal: " + e.message); setLoading('btnSaveStageVid', false, 'Tambahkan Video'); }
+        }
+        function deleteGamerStageVideo(id, event) { event.stopPropagation(); if(confirm("Hapus video dari stage?")) db.collection("gamer_stage_videos").doc(id).delete(); }
+
+        // Simpan Video Personal ke Profil Gamer
+        async function saveGamerPersonalVideo() {
+            const mid = document.getElementById('gpEditId').value;
+            const title = document.getElementById('gpVidTitle').value;
+            const ytId = document.getElementById('gpVidId').value;
+            if(!title || !ytId) { alert("Isi judul dan ID YouTube!"); return; }
+            
+            setLoading('btnSaveGpVid', true, 'Menyimpan...');
+            try {
+                const m = members.find(x => x.id === mid);
+                if(!m.gameplays) m.gameplays = [];
+                m.gameplays.push({ title: title, ytId: ytId });
+                
+                await db.collection("members").doc(mid).set(m);
+                closeModal('modalAddGamerVideo');
+                document.getElementById('gpVidTitle').value = ""; document.getElementById('gpVidId').value = "";
+                openGamerProfile(mid); // Reload profil
+                setLoading('btnSaveGpVid', false, 'Tambahkan Video');
+            } catch(e) { alert("Gagal: " + e.message); setLoading('btnSaveGpVid', false, 'Tambahkan Video'); }
+        }
+        function deleteGamerPersonalVideo(mid, idx) { 
+            if(confirm("Hapus video gameplay ini?")) { 
+                const m = members.find(x => x.id === mid); 
+                m.gameplays.splice(idx, 1); 
+                db.collection("members").doc(mid).set(m).then(() => openGamerProfile(mid)); 
+            } 
+        }
+
         function renderEvents() {
             const list = document.getElementById('events-list');
             list.innerHTML = "";
@@ -2423,7 +2772,7 @@ body, header {
             if(document.getElementById('view-official').classList.contains('active')) { renderLeaderboard('official'); prepareHistoryData('official'); }
             if(document.getElementById('view-trainee').classList.contains('active')) { renderLeaderboard('trainee'); prepareHistoryData('trainee'); }
             if(document.getElementById('view-profile').classList.contains('active')) openProfile(document.getElementById('editId').value); 
-            if(document.getElementById('view-gamers').classList.contains('active')) renderGamers();
+            if(document.getElementById('view-gamers').classList.contains('active') || document.getElementById('view-gamer-profile').classList.contains('active')) renderGamers();
             if(document.getElementById('view-events').classList.contains('active')) renderEvents();
         }
         window.onclick = (e) => { if(e.target.classList.contains('modal')) e.target.style.display = 'none'; }
@@ -2622,58 +2971,6 @@ window.addEventListener("DOMContentLoaded",()=>{
 });
 </script>
 
-
-<style>
-#introTutorial {
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.6s ease, visibility 0.6s ease;
-}
-
-#introTutorial.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-#introTutorial.hide {
-    opacity: 0;
-    visibility: hidden;
-}
-
-#introTutorial .tutorial-card {
-    transform: translateY(20px);
-    transition: transform 0.6s ease;
-}
-
-#introTutorial.show .tutorial-card {
-    transform: translateY(0);
-}
-
-
-/* =========================================
-   DIVISION CURSOR GLOW COLOR FIX (AUTO PATCH)
-========================================= */
-
-/* TRAINEE — CYAN NEON */
-#view-trainee .leaderboard-card::before {
-    background: radial-gradient(
-        circle at var(--x,50%) var(--y,50%),
-        rgba(0,229,255,0.28),
-        transparent 60%
-    ) !important;
-}
-
-/* GAMERS — GOLD */
-#view-gamers .leaderboard-card::before {
-    background: radial-gradient(
-        circle at var(--x,50%) var(--y,50%),
-        rgba(255,215,0,0.30),
-        transparent 60%
-    ) !important;
-}
-
-</style>
-
 <script>
 function closeIntroTutorial(){
     const modal = document.getElementById("introTutorial");
@@ -2691,7 +2988,7 @@ window.addEventListener("load",()=>{
     
     const modal = document.getElementById("introTutorial");
 
-    if(!seen && modal){
+    if(typeof seen === 'undefined' && modal){
         modal.style.display="flex";
 
         // delay appearance so it feels natural after page loads
