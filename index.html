@@ -451,6 +451,108 @@ body, header { transition: background 0.6s ease, background-image 0.6s ease, bor
 .checkbox-game-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid #444; }
 .checkbox-game-item input { width: 20px; height: 20px; margin: 0; }
 </style>
+
+<!-- ===== UX UPGRADE PATCH (D–G) : NON-DESTRUCTIVE ===== -->
+<style>
+.social-proof-strip{
+ display:flex;
+ flex-wrap:wrap;
+ gap:12px;
+ justify-content:center;
+ margin:18px 0 25px 0;
+}
+.social-proof-item{
+ background:rgba(0,0,0,0.25);
+ border:1px solid rgba(255,255,255,0.08);
+ padding:10px 16px;
+ border-radius:12px;
+ font-weight:600;
+ font-size:0.9rem;
+ backdrop-filter:blur(6px);
+}
+.personal-banner{
+ margin-top:18px;
+ margin-bottom:28px; /* breathing space */
+ padding:18px;
+ border-radius:14px;
+ background:linear-gradient(135deg, rgba(255,71,87,0.18), rgba(72,219,251,0.12));
+ border:1px solid rgba(255,255,255,0.08);
+ text-align:center;
+ animation:fadeIn .6s ease;
+ transform: translateY(-4px); /* premium floating feel */
+ box-shadow: 0 10px 28px rgba(0,0,0,0.35),
+             0 0 20px rgba(255,71,87,0.15);
+ backdrop-filter: blur(10px);
+}
+
+.smart-empty-trainee{
+ text-align:center;
+ padding:30px 20px;
+ background:rgba(0,0,0,0.25);
+ border-radius:14px;
+ border:1px dashed var(--sky-blue);
+}
+#loadingOverlay.cinematic-hide{
+ opacity:0;
+ pointer-events:none;
+ transition:opacity .6s ease;
+}
+</style>
+
+
+<!-- ===== FONT AWESOME FUTURE-PROOF FIX ===== -->
+<style>
+/* Protect Font Awesome icons from global typography overrides */
+i[class^="fa"],
+i[class*=" fa"],
+.fas, .fa, .fa-solid, .far, .fab {
+    font-family: "Font Awesome 6 Free" !important;
+    font-weight: 900 !important;
+    font-style: normal !important;
+    display: inline-block !important;
+    line-height: 1 !important;
+}
+
+/* Ensure icons inside navigation buttons always visible */
+.nav-btn i {
+    margin-right: 6px;
+    vertical-align: middle;
+}
+</style>
+
+
+<!-- ===== FONT AWESOME HARD FIX (FINAL) ===== -->
+<style>
+/* Force correct FA rendering even if typography overrides happen */
+.nav-btn i,
+i.fas, i.fa, i.fa-solid, i.far, i.fab,
+[class^="fa-"]::before {
+    font-family: "Font Awesome 6 Free","Font Awesome 6 Brands" !important;
+    font-weight: 900 !important;
+    speak: none;
+    font-style: normal !important;
+    font-variant: normal !important;
+    text-rendering: auto !important;
+    -webkit-font-smoothing: antialiased !important;
+    -moz-osx-font-smoothing: grayscale !important;
+}
+
+/* ensure icon space exists */
+.nav-btn i {
+    display:inline-block !important;
+    width:auto;
+    margin-right:8px;
+}
+</style>
+
+
+<!-- ===== FONT AWESOME RELOAD (FINAL GUARANTEE) ===== -->
+<link rel="stylesheet"
+ href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+ integrity="sha512-p1CmS6A0k6Y5E9O+V1YQUiCEV4VpWwfvX2gYdExgkt1PyfuzMdGII4XESyqSeX5TR1+t0NenE2no0LYg5R+0Ug=="
+ crossorigin="anonymous"
+ referrerpolicy="no-referrer" />
+
 </head>
 <body>
 
@@ -2676,6 +2778,80 @@ window.addEventListener("load", ()=>{
     showOnboarding();
 });
 </script>
+
+
+<script>
+// === PERSONALIZED HOME ===
+window.addEventListener("DOMContentLoaded",()=>{
+ const container=document.querySelector("#view-about .about-team-card");
+ if(!container) return;
+ const banner=document.createElement("div");
+ banner.className="personal-banner";
+ banner.id="personalBanner";
+ banner.style.display="none";
+ banner.innerHTML=`
+   <h3 id="welcomeUser">Welcome 👋</h3>
+   <div style="opacity:.85;font-size:.9rem">
+     🔥 Senang melihatmu kembali di Akang Cosplay
+   </div>`;
+ container.prepend(banner);
+});
+
+// === SOCIAL PROOF STRIP ===
+window.addEventListener("DOMContentLoaded",()=>{
+ const stats=document.querySelector(".visitor-stats-container");
+ if(!stats) return;
+ const strip=document.createElement("div");
+ strip.className="social-proof-strip";
+ strip.innerHTML=`
+   <div class="social-proof-item">⭐ Komunitas Aktif</div>
+   <div class="social-proof-item">🏆 Prestasi Tercatat</div>
+   <div class="social-proof-item">🌏 Pengunjung Global</div>`;
+ stats.parentNode.insertBefore(strip,stats);
+});
+
+// === SMART EMPTY STATE (TRAINEE ONLY) ===
+const observerTraineeEmpty=new MutationObserver(()=>{
+ const el=document.getElementById("empty-lb-trainee");
+ if(!el) return;
+ if(el.style.display!=="none"){
+   el.innerHTML=`
+   <div class="smart-empty-trainee">
+     <h3>🚀 Slot Trainee Masih Terbuka!</h3>
+     <p>Perjalanan cosplay selalu dimulai dari langkah pertama.</p>
+     <p style="opacity:.75">Jadilah Trainee pertama yang memulai legenda berikutnya.</p>
+   </div>`;
+ }
+});
+window.addEventListener("DOMContentLoaded",()=>{
+ const target=document.getElementById("view-trainee");
+ if(target) observerTraineeEmpty.observe(target,{childList:true,subtree:true});
+});
+
+// === CINEMATIC LOADING ===
+window.addEventListener("load",()=>{
+ const loader=document.getElementById("loadingOverlay");
+ if(!loader) return;
+ setTimeout(()=>{
+   loader.classList.add("cinematic-hide");
+   setTimeout(()=>loader.style.display="none",700);
+ },1600);
+});
+
+// === PERSONALIZATION HOOK ===
+setInterval(()=>{
+ if(typeof currentUser!=="undefined" && currentUser){
+   const banner=document.getElementById("personalBanner");
+   if(banner){
+     banner.style.display="block";
+     const name=currentUser.displayName || currentUser.email?.split("@")[0] || "Cosplayer";
+     const txt=document.getElementById("welcomeUser");
+     if(txt) txt.innerHTML=`Welcome back, ${name} 👋`;
+   }
+ }
+},1500);
+</script>
+<!-- ===== END UX UPGRADE PATCH ===== -->
 
 </body>
 </html>
