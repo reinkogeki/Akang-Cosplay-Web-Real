@@ -452,7 +452,6 @@ body, header { transition: background 0.6s ease, background-image 0.6s ease, bor
 .checkbox-game-item input { width: 20px; height: 20px; margin: 0; }
 </style>
 
-<!-- ===== UX UPGRADE PATCH (D–G) : NON-DESTRUCTIVE ===== -->
 <style>
 .social-proof-strip{
  display:flex;
@@ -500,7 +499,6 @@ body, header { transition: background 0.6s ease, background-image 0.6s ease, bor
 </style>
 
 
-<!-- ===== FONT AWESOME FUTURE-PROOF FIX ===== -->
 <style>
 /* Protect Font Awesome icons from global typography overrides */
 i[class^="fa"],
@@ -521,7 +519,6 @@ i[class*=" fa"],
 </style>
 
 
-<!-- ===== FONT AWESOME HARD FIX (FINAL) ===== -->
 <style>
 /* Force correct FA rendering even if typography overrides happen */
 .nav-btn i,
@@ -546,7 +543,6 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 </style>
 
 
-<!-- ===== FONT AWESOME RELOAD (FINAL GUARANTEE) ===== -->
 <link rel="stylesheet"
  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
  integrity="sha512-p1CmS6A0k6Y5E9O+V1YQUiCEV4VpWwfvX2gYdExgkt1PyfuzMdGII4XESyqSeX5TR1+t0NenE2no0LYg5R+0Ug=="
@@ -763,7 +759,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 
             <div class="stage-section" style="margin-top: 30px; border: 1px solid var(--accent-blue);">
                 <h2 class="stage-title" style="color: var(--accent-blue);"><i class="fab fa-youtube"></i> GAMERS STAGE</h2>
-                <button class="admin-only" style="display: none; background: var(--green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 15px; width: 100%; font-weight: bold;" onclick="openModal('modalAddGamerStage')"><i class="fas fa-plus"></i> Tambah Video Stage</button>
+                <button class="admin-only" style="display: none; background: var(--green); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: margin-bottom: 15px; width: 100%; font-weight: bold;" onclick="openModal('modalAddGamerStage')"><i class="fas fa-plus"></i> Tambah Video Stage</button>
                 <div class="cinema-frame" style="border: 2px solid var(--accent-blue);">
                     <iframe id="iframe-gamer-stage" class="video-iframe" src="" allowfullscreen></iframe>
                 </div>
@@ -829,7 +825,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 <p style="color: #ccc; font-size: 0.9rem; margin-top: 0;">Agenda Deployment Pasukan Akang Cosplay</p>
             </div>
 
-            <button class="admin-only" style="width: 100%; background: var(--green); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; display: none;" onclick="openModal('modalAddEvent')">
+            <button class="admin-only" style="width: 100%; background: var(--green); color: white; padding: 12px; border: none; border-radius: 10px; font-weight: bold; margin-bottom: 20px; display: none;" onclick="openAddEventModal()">
                 <i class="fas fa-plus-circle"></i> Tambah Jadwal Event
             </button>
 
@@ -953,7 +949,8 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 
     <div id="modalAddEvent" class="modal">
         <div class="modal-content">
-            <h3 style="color: var(--purple);"><i class="fas fa-calendar-plus"></i> Tambah Event Baru</h3>
+            <h3 id="modalEventTitle" style="color: var(--purple);"><i class="fas fa-calendar-plus"></i> Tambah Event Baru</h3>
+            <input type="hidden" id="evtEditId">
             <label>Nama Event</label><input type="text" id="evtName">
             <label>Tipe Event</label>
             <select id="evtType">
@@ -1817,15 +1814,62 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             } 
         }
 
+        // BUKA MODAL TAMBAH EVENT BARU KOSONG
+        function openAddEventModal() {
+            document.getElementById('evtEditId').value = "";
+            document.getElementById('evtName').value = "";
+            document.getElementById('evtType').value = "Coswalk Competition";
+            document.getElementById('evtDate').value = "";
+            document.getElementById('evtLoc').value = "";
+            document.getElementById('evtJudges').value = "";
+            document.getElementById('evtPoster').value = "";
+            document.getElementById('evtPrizesContainer').innerHTML = "";
+            document.getElementById('evtRundown').value = "";
+            document.getElementById('modalEventTitle').innerHTML = '<i class="fas fa-calendar-plus"></i> Tambah Event Baru';
+            document.getElementById('btnSaveEvent').innerText = "Publish Event";
+            openModal('modalAddEvent');
+        }
+
+        // BUKA MODAL EDIT EVENT DENGAN DATA LAMA
+        function openEditEvent(id) {
+            const e = events.find(x => x.id === id);
+            if(!e) return;
+
+            document.getElementById('evtEditId').value = e.id;
+            document.getElementById('evtName').value = e.name;
+            document.getElementById('evtType').value = e.type;
+            document.getElementById('evtDate').value = e.date;
+            document.getElementById('evtLoc').value = e.location;
+            document.getElementById('evtJudges').value = e.judges;
+            document.getElementById('evtRundown').value = e.rundown || "";
+            document.getElementById('evtPoster').value = ""; // File input tidak bisa diset isinya
+            
+            const prizeContainer = document.getElementById('evtPrizesContainer');
+            prizeContainer.innerHTML = "";
+            if(e.prizes && e.prizes.length > 0) {
+                e.prizes.forEach(p => {
+                    const pid = Date.now() + Math.floor(Math.random() * 1000);
+                    prizeContainer.insertAdjacentHTML('beforeend', `<div id="prize-${pid}" style="display:flex; gap:5px; margin-bottom:5px;"><input type="text" placeholder="Kategori" class="prize-name-input" value="${escapeHtml(p.name)}"><input type="text" placeholder="Hadiah" class="prize-amount-input" value="${escapeHtml(p.amount)}"><button onclick="document.getElementById('prize-${pid}').remove()" style="background:red; color:white; border:none; border-radius:5px; width:30px;"><i class="fas fa-times"></i></button></div>`);
+                });
+            }
+
+            document.getElementById('modalEventTitle').innerHTML = '<i class="fas fa-edit"></i> Edit Event';
+            document.getElementById('btnSaveEvent').innerText = "Update Event";
+            openModal('modalAddEvent');
+        }
+
         function renderEvents() {
             const list = document.getElementById('events-list');
             list.innerHTML = "";
             if(events.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777;'>Belum ada event terjadwal.</p>"; return; }
             
             const now = new Date();
-            const upcoming = events.filter(e => new Date(e.date) >= now);
-            const past = events.filter(e => new Date(e.date) < now);
-            const sortedEvents = [...upcoming, ...past];
+            now.setHours(0,0,0,0); // Reset ke jam 00:00 hari ini
+            
+            // FILTER: Hanya menampilkan event yang belum lewat (Soft Delete Event Lama)
+            const sortedEvents = events.filter(e => new Date(e.date) >= now).sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            if(sortedEvents.length === 0) { list.innerHTML = "<p style='text-align:center; color:#777;'>Tidak ada event aktif saat ini.</p>"; return; }
 
             sortedEvents.forEach(e => {
                 const dateObj = new Date(e.date);
@@ -1839,12 +1883,15 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                     });
                 }
                 
+                // TOMBOL EDIT & DELETE (Khusus Super Admin)
                 const delBtn = isAdmin ? `<button onclick="deleteEvent('${e.id}')" style="position:absolute; top:10px; right:10px; background:red; color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-trash"></i></button>` : '';
+                const editBtn = isAdmin ? `<button onclick="openEditEvent('${e.id}')" style="position:absolute; top:10px; right:55px; background:var(--accent-blue); color:white; border:none; border-radius:5px; padding:5px 10px; cursor:pointer;"><i class="fas fa-pen"></i></button>` : '';
 
                 list.innerHTML += `
                     <div class="event-card">
                         <div style="position:relative;">
                             <img src="${e.poster || 'https://via.placeholder.com/800x450?text=No+Poster'}" class="event-poster" onclick="openLightbox('${e.poster}')">
+                            ${editBtn}
                             ${delBtn}
                         </div>
                         <div class="event-body">
@@ -1878,6 +1925,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             await new Promise(r => setTimeout(r, 300)); 
 
             try {
+                const editId = document.getElementById('evtEditId').value;
                 const name = document.getElementById('evtName').value;
                 const type = document.getElementById('evtType').value;
                 const date = document.getElementById('evtDate').value;
@@ -1900,48 +1948,126 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 let posterUrl = null;
                 if(file) {
                     posterUrl = await compressImage(file, 1000, 0.8);
+                } else if (editId) {
+                    // Jika sedang mode edit tapi tidak upload poster baru, pertahankan URL poster yang lama
+                    const existingEvent = events.find(e => e.id === editId);
+                    posterUrl = existingEvent ? existingEvent.poster : null;
                 }
 
+                const evtIdToSave = editId || Date.now().toString(); // Pakai ID lama jika mode edit
                 const newEvt = {
-                    id: Date.now().toString(),
+                    id: evtIdToSave,
                     name, type, date, location: loc, judges, rundown, prizes,
                     poster: posterUrl
                 };
                 
+                // Set akan menimpa data lama jika id-nya sama, atau membuat dokumen baru
                 await db.collection("events").doc(newEvt.id).set(newEvt);
                 
                 closeModal('modalAddEvent');
                 document.getElementById('evtName').value = "";
                 document.getElementById('evtPrizesContainer').innerHTML = "";
-                setLoading('btnSaveEvent', false, 'Publish Event');
-                alert("Event Berhasil Dibuat!");
+                setLoading('btnSaveEvent', false, editId ? 'Update Event' : 'Publish Event');
+                alert(editId ? "Event Berhasil Diupdate!" : "Event Berhasil Dibuat!");
 
             } catch (error) {
                 alert("Error: " + error.message);
-                setLoading('btnSaveEvent', false, 'Publish Event');
+                setLoading('btnSaveEvent', false, document.getElementById('evtEditId').value ? 'Update Event' : 'Publish Event');
             }
         }
-        function deleteEvent(id) { if(confirm("Hapus event ini?")) db.collection("events").doc(id).delete(); }
+        function deleteEvent(id) { if(confirm("Hapus event ini secara permanen dari Database?")) db.collection("events").doc(id).delete(); }
         
         function toggleFabMenu() { document.getElementById('fabMenu').classList.toggle('show'); }
         function openBotModal() { document.getElementById('chatInput').value = ""; document.getElementById('chatArea').innerHTML = `<div class="chat-msg bot"><div class="bubble bot">Halo! Saya Akang Bot 🤖.<br>Mau tanya apa?</div></div>`; renderBotOptions(); openModal('modalBot'); }
         function renderBotOptions() { const opts = document.getElementById('chatOptions'); opts.innerHTML = ""; botFaqData.forEach((i, idx) => { opts.innerHTML += `<button class="bot-opt-btn" onclick="askBot(${idx})">${i.q}</button>`; }); }
         function askBot(idx) { const i = botFaqData[idx]; const c = document.getElementById('chatArea'); c.innerHTML += `<div class="chat-msg user"><div class="bubble user">${i.q}</div></div>`; setTimeout(() => { c.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${i.a}</div></div>`; c.scrollTop = c.scrollHeight; }, 600); }
         function handleChatEnter(e) { if (e.key === 'Enter') sendCustomMessage(); }
-        function sendCustomMessage() { 
-            const txt = document.getElementById('chatInput').value.trim(); if(!txt) return; const low = txt.toLowerCase(); const c = document.getElementById('chatArea'); c.innerHTML += `<div class="chat-msg user"><div class="bubble user">${escapeHtml(txt)}</div></div>`; document.getElementById('chatInput').value = ""; c.scrollTop = c.scrollHeight;
-            setTimeout(() => {
-                let r = "Maaf, coba tanya: 'cara join', 'sosmed', atau 'apa itu akang cosplay'.";
-                if (low.includes('apa itu akang cosplay') || (low.includes('akang cosplay') && low.includes('adalah'))) r = "<b>Akang Cosplay</b> adalah tim cosplay sejak 14 Juni 2024. ✨<br>Komunitas seru buat kompetisi & hobi jejepangan!";
-                else if (low.includes('apa itu akang trainee') || (low.includes('trainee') && low.includes('adalah'))) r = "<b>Akang Trainee</b> adalah tempat latihan buat member baru sebelum jadi Official Member. 🎓";
-                else if (low.includes('daftar') || low.includes('join') || low.includes('gabung')) r = "Caranya:<br>1. Klik tombol <b>Login</b>.<br>2. Pilih tab <b>Daftar Member</b>.<br>3. Isi data & Daftar.<br>Selesai! 🎉";
-                else if (low.includes('ig') || low.includes('sosmed')) r = "Follow IG kami: <a href='https://instagram.com/akangcosplay' class='bot-link'>@akangcosplay</a>";
-                else if (low.includes('youtube') || low.includes('gamers')) r = "Nonton mabar di YT: <a href='https://youtube.com/@akanggamers1372' class='bot-link'>Akang Gamers</a> 🎮";
-                else if (low.includes('halo') || low.includes('hi')) r = "Halo juga! 👋";
-                c.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${r}</div></div>`; c.scrollTop = c.scrollHeight;
-            }, 700);
+        
+        // --- SMART BOT INTENT DICTIONARY ---
+        const botIntents = [
+            {
+                name: "akang_cosplay",
+                keywords: ["apa itu akang", "sejarah", "siapa aja", "info tim", "tentang akang", "profil", "founder", "akang cosplay", "kenapa akang cosplay itu ada"],
+                response: "<b>Akang Cosplay</b> adalah tim cosplay yang didirikan pada 14 Juni 2024 oleh Rein, Nabilla, dan Ian. Kami aktif berkompetisi dan membuat properti cosplay! ✨"
+            },
+            {
+                name: "trainee",
+                keywords: ["cara join", "daftar trainee", "apa itu trainee", "apa itu akang trainee", "syarat masuk", "gabung trainee", "rekrut", "member baru", "masuk akang", "join", "daftar"],
+                response: "<b>Akang Trainee</b> adalah ruang pengembangan buat kamu yang mau belajar performa & kompetisi cosplay! 🎓<br><br><b>Cara Join:</b><br>1. Klik tombol <b>Login</b> di atas.<br>2. Pilih tab <b>Daftar Member</b>.<br>3. Isi biodata.<br>Kamu akan langsung masuk klasemen Trainee! 🎉"
+            },
+            {
+                name: "gamers",
+                keywords: ["info gamers", "mabar", "live streaming", "main game", "youtube", "streaming", "game", "akang gamers"],
+                response: "<b>Akang Gamers</b> itu divisi santai tempat Rein dan Nabilla live streaming dan mabar bareng viewers! 🎮 Cek menu <b>Gamers</b> buat liat list game dan video seru kita."
+            },
+            {
+                name: "jadwal_event",
+                keywords: ["kapan event", "jadwal event", "deploy kapan", "lomba terdekat", "jadwal deploy", "event selanjutnya", "kompetisi", "coswalk", "jadwal"],
+                response: "Untuk jadwal <b>Deploy / Event</b> terdekat pasukan Akang Cosplay, kamu bisa langsung cek menu <b>Events</b> (ikon kalender) di atas. Di sana ada info lengkap lokasi, tanggal, dan juri lombanya! 🗓️🔥"
+            },
+            {
+                name: "sosmed",
+                keywords: ["ig", "instagram", "sosmed", "sosial media", "tiktok"],
+                response: "Follow sosial media kami ya!<br>IG: <a href='https://instagram.com/akangcosplay' class='bot-link' target='_blank'>@akangcosplay</a><br>Gamers: <a href='https://instagram.com/akanggamersofc' class='bot-link' target='_blank'>@akanggamersofc</a>"
+            },
+            {
+                name: "salam",
+                keywords: ["halo", "hi ", "hai", "pagi", "siang", "malam", "ping", "bot", "min", "akang"],
+                response: "Halo! 👋 Saya Akang Bot. Ada yang bisa saya bantu seputar tim Akang Cosplay, Trainee, Gamers, atau jadwal event?"
+            }
+        ];
+
+        function getBotResponse(input) {
+            const lowerInput = input.toLowerCase();
+            let bestMatch = null;
+            let highestScore = 0;
+
+            botIntents.forEach(intent => {
+                let score = 0;
+                intent.keywords.forEach(keyword => {
+                    if (lowerInput.includes(keyword.toLowerCase())) {
+                        score += keyword.length; // Kata kunci yang lebih panjang/spesifik bobotnya lebih tinggi
+                    }
+                });
+
+                if (score > highestScore) {
+                    highestScore = score;
+                    bestMatch = intent;
+                }
+            });
+
+            // Jika ada keyword yang cocok, berikan responnya. Jika tidak, berikan fallback.
+            if (bestMatch && highestScore > 0) {
+                return bestMatch.response;
+            } else {
+                return "Maaf, Akang Bot belum mengerti maksudnya. 🤖 Coba ketik dengan kata yang lebih spesifik, seperti: 'cara join trainee', 'info gamers', 'apa itu akang cosplay', atau 'jadwal event'.";
+            }
         }
-        const botFaqData = [{q:"Apa itu Akang Cosplay?",a:"Tim cosplay & komunitas hobi sejak 2024! ✨"},{q:"Cara Join?",a:"Klik Login -> Tab Daftar Member -> Isi Data. Gratis!"},{q:"Sosmed?",a:"IG: @akangcosplay, TikTok: @akangcosplay, YT: Akang Cosplay"}];
+
+        function sendCustomMessage() {
+            const txt = document.getElementById('chatInput').value.trim(); 
+            if(!txt) return; 
+            
+            const c = document.getElementById('chatArea'); 
+            c.innerHTML += `<div class="chat-msg user"><div class="bubble user">${escapeHtml(txt)}</div></div>`; 
+            document.getElementById('chatInput').value = ""; 
+            c.scrollTop = c.scrollHeight;
+
+            // Simulasi jeda berpikir agar terasa lebih natural
+            setTimeout(() => {
+                const botReply = getBotResponse(txt);
+                c.innerHTML += `<div class="chat-msg bot"><div class="bubble bot">${botReply}</div></div>`; 
+                c.scrollTop = c.scrollHeight;
+            }, 600);
+        }
+
+        // Memperbarui tombol FAQ yang bisa diklik langsung oleh user
+        const botFaqData = [
+            {q:"Apa itu Akang Cosplay?", a:"Tim cosplay & komunitas hobi sejak 2024! ✨"},
+            {q:"Cara Join Trainee?", a:"Klik Login -> Tab Daftar Member -> Isi Data. Gratis!"},
+            {q:"Info Jadwal Event", a:"Cek menu Events di bagian atas ya! 🗓️"},
+            {q:"Info Akang Gamers", a:"Wadah seru-seruan mabar & live streaming bareng kita! 🎮"}
+        ];
 
         function setHistoryFilter(cat, btn) { activeFilterCategory = cat; btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active'); prepareHistoryData(activeHistoryType); }
         
@@ -2732,8 +2858,7 @@ const onboardingMessages = {
         title: "Selamat Datang Kembali ⚔️",
         body: `
         Lihat perkembangan terbaru team dan trainee,
-        cek leaderboard, atau lanjutkan eksplorasimu.
-        Setiap kunjungan adalah bagian dari perjalanan.
+        cek leaderboard, list mabar, atau lanjutkan eksplorasimu.
         `
     }
 };
@@ -2851,7 +2976,5 @@ setInterval(()=>{
  }
 },1500);
 </script>
-<!-- ===== END UX UPGRADE PATCH ===== -->
-
 </body>
 </html>
