@@ -1204,6 +1204,22 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             return Math.ceil((base64.length * 3) / 4) - padding;
         }
 
+        function getJsonByteSize(obj) {
+            try {
+                return new Blob([JSON.stringify(obj)]).size;
+            } catch (err) {
+                return JSON.stringify(obj).length;
+            }
+        }
+
+        function ensureFirestoreDocSize(docObj, label = 'Data') {
+            const size = getJsonByteSize(docObj);
+            if (size > 1024 * 1024) {
+                throw new Error(`${label} terlalu besar untuk disimpan di Firestore. Kurangi ukuran gambar atau jumlah media.`);
+            }
+            return size;
+        }
+
         function compressImage(file, maxWidth = 1000, quality = 0.8, type = 'image/webp') {
             return new Promise((resolve, reject) => {
                 const reader = new FileReader();
@@ -1232,10 +1248,12 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             });
         }
 
-        async function compressImageToLimit(file, maxWidth = 800, quality = 0.7, maxBytes = 240000) {
-            let compressed = await compressImage(file, maxWidth, quality, 'image/jpeg');
+        async function compressImageToLimit(file, maxWidth = 800, quality = 0.7, maxBytes = 90000) {
+            let compressed = await compressImage(file, maxWidth, quality, 'image/webp');
             if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
-            compressed = await compressImage(file, Math.max(300, Math.floor(maxWidth * 0.7)), Math.max(0.35, quality - 0.25), 'image/jpeg');
+            compressed = await compressImage(file, Math.max(300, Math.floor(maxWidth * 0.5)), Math.max(0.25, quality - 0.3), 'image/webp');
+            if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
+            compressed = await compressImage(file, Math.max(220, Math.floor(maxWidth * 0.4)), 0.18, 'image/webp');
             if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
             throw new Error('Gambar terlalu besar untuk disimpan. Pilih file yang lebih kecil atau kurangi resolusi.');
         }
@@ -1768,7 +1786,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             
             setLoading('btnSaveGamerProfile', true, 'Menyimpan...');
             try {
-                if(file) { m.gamerPhoto = await compressImageToLimit(file, 600, 0.6, 180000); }
+                if(file) { m.gamerPhoto = await compressImageToLimit(file, 450, 0.45, 70000); }
                 m.gamerBio = document.getElementById('gpEditBio').value;
                 m.gamerYt = document.getElementById('gpEditYt').value;
                 m.gamerIg = document.getElementById('gpEditIg').value;
@@ -2432,7 +2450,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             try {
                 let photoUrl = null;
                 if(file) {
-                    photoUrl = await compressImageToLimit(file, 600, 0.6, 180000);
+                    photoUrl = await compressImageToLimit(file, 450, 0.45, 70000);
                 }
 
                 m.name = document.getElementById('editName').value; 
@@ -2447,6 +2465,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 if(photoUrl) m.photo = photoUrl; 
                 
                 m.repertoire = [...currentTempRepertoire]; 
+                ensureFirestoreDocSize(m, 'Profil member');
                 
                 await db.collection("members").doc(id).set(m);
                 
@@ -2523,7 +2542,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 
                 let proofUrl = null;
                 if(proof) {
-                    proofUrl = await compressImageToLimit(proof, 600, 0.55, 180000);
+                    proofUrl = await compressImageToLimit(proof, 500, 0.45, 70000);
                 }
 
                 const uniqueWinId = editId || (Date.now() + Math.random().toString());
@@ -2557,6 +2576,8 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                     } else { history.unshift(myWinData); }
 
                     // FIX REPERTOIRE: Menghapus auto-push ke repertoire sesuai permintaan
+                    const updatedMemberData = { ...mData, history };
+                    ensureFirestoreDocSize(updatedMemberData, 'Riwayat member');
                     batch.update(mRef, { history: history });
                 });
                 
@@ -2577,12 +2598,13 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 const id = document.getElementById('editId').value; 
                 const m = members.find(x=>x.id==id); 
                 if(!m.gallery) m.gallery=[]; 
-                if (m.gallery.length >= 4) {
-                    alert('Galeri maksimal 4 foto. Hapus foto lama terlebih dahulu.');
+                if (m.gallery.length >= 2) {
+                    alert('Galeri maksimal 2 foto. Hapus foto lama terlebih dahulu.');
                     return;
                 }
-                const u = await compressImageToLimit(f, 600, 0.6, 180000);
+                const u = await compressImageToLimit(f, 450, 0.4, 60000);
                 m.gallery.push(u); 
+                ensureFirestoreDocSize(m, 'Profil member');
                 await db.collection("members").doc(id).set(m);
                 openProfile(id);
                 inp.value="";
