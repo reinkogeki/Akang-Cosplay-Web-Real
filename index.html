@@ -876,7 +876,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                     <small style="font-size:0.7em; font-weight:normal; color:#777;">(Grid 1:1)</small>
                 </h3>
                 
-                <button id="btnAddGalleryPhoto" class="btn-add-photo" onclick="document.getElementById('galleryInput').click()">
+                <button class="btn-add-photo" onclick="document.getElementById('galleryInput').click()">
                     <i class="fas fa-camera"></i> Tambah Foto ke Galeri
                 </button>
                 <input type="file" id="galleryInput" hidden accept="image/*" onchange="uploadGalleryPhoto(this)">
@@ -1197,72 +1197,11 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 
         function escapeHtml(text) { if (!text) return ""; if (typeof text !== "string") return text; return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;"); }
 
-
-
         function getBase64ByteSize(dataUrl) {
             if (!dataUrl) return 0;
             const base64 = dataUrl.split(',')[1] || "";
             const padding = base64.endsWith("==") ? 2 : base64.endsWith("=") ? 1 : 0;
             return Math.ceil((base64.length * 3) / 4) - padding;
-        }
-
-        function getJsonByteSize(obj) {
-            try {
-                return new Blob([JSON.stringify(obj)]).size;
-            } catch (err) {
-                return JSON.stringify(obj).length;
-            }
-        }
-
-        function ensureFirestoreDocSize(docObj, label = 'Data') {
-            const size = getJsonByteSize(docObj);
-            if (size > 1024 * 1024) {
-                throw new Error(`${label} terlalu besar untuk disimpan di Firestore. Kurangi ukuran gambar atau jumlah media.`);
-            }
-            return size;
-        }
-
-        function pruneOldProofsInHistory(history, keepLatestProofs = 1) {
-            if (!Array.isArray(history)) return history;
-            let keptProofs = 0;
-            return history.map(entry => {
-                if (!entry || typeof entry !== 'object') return entry;
-                if (entry.proof) {
-                    keptProofs += 1;
-                    if (keptProofs > keepLatestProofs) {
-                        return { ...entry, proof: null };
-                    }
-                }
-                return entry;
-            });
-        }
-
-        function normalizeMemberDocForFirestore(member) {
-            const cloned = JSON.parse(JSON.stringify(member));
-            if (cloned.history) {
-                cloned.history = pruneOldProofsInHistory(cloned.history, 1);
-            }
-            if (cloned.gallery && Array.isArray(cloned.gallery) && cloned.gallery.length > 5) {
-                cloned.gallery = cloned.gallery.slice(0, 5);
-            }
-            let size = getJsonByteSize(cloned);
-            if (size <= 1024 * 1024) return cloned;
-
-            if (cloned.history) {
-                cloned.history = pruneOldProofsInHistory(cloned.history, 0);
-                size = getJsonByteSize(cloned);
-                if (size <= 1024 * 1024) return cloned;
-            }
-
-            if (cloned.gallery && Array.isArray(cloned.gallery)) {
-                while (cloned.gallery.length > 0) {
-                    cloned.gallery.pop();
-                    size = getJsonByteSize(cloned);
-                    if (size <= 1024 * 1024) return cloned;
-                }
-            }
-
-            throw new Error('Dokumen member masih terlalu besar setelah memangkas data media. Hapus foto lama atau riwayat foto.');
         }
 
         function compressImage(file, maxWidth = 1000, quality = 0.8, type = 'image/webp') {
@@ -1285,32 +1224,21 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                         canvas.height = height;
                         const ctx = canvas.getContext('2d');
                         ctx.drawImage(img, 0, 0, width, height);
-                        const result = canvas.toDataURL(type, quality);
-                        resolve(result);
+                        resolve(canvas.toDataURL(type, quality));
                     };
-                    img.onerror = (err) => {
-                        reject(new Error('Gagal memuat gambar. Pastikan file gambar valid.'));
-                    };
+                    img.onerror = (err) => reject(err);
                 };
-                reader.onerror = (err) => {
-                    reject(new Error('Gagal membaca file.'));
-                };
+                reader.onerror = (err) => reject(err);
             });
         }
 
-        async function compressImageToLimit(file, maxWidth = 800, quality = 0.7, maxBytes = 30000) {
-            let compressed = await compressImage(file, maxWidth, quality, 'image/webp');
+        async function compressImageToLimit(file, maxWidth = 800, quality = 0.7, maxBytes = 240000) {
+            let compressed = await compressImage(file, maxWidth, quality, 'image/jpeg');
             if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
-            compressed = await compressImage(file, Math.max(300, Math.floor(maxWidth * 0.5)), Math.max(0.25, quality - 0.3), 'image/webp');
-            if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
-            compressed = await compressImage(file, Math.max(220, Math.floor(maxWidth * 0.4)), 0.18, 'image/webp');
-            if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
-            compressed = await compressImage(file, 150, 0.1, 'image/webp');
+            compressed = await compressImage(file, Math.max(300, Math.floor(maxWidth * 0.7)), Math.max(0.35, quality - 0.25), 'image/jpeg');
             if (getBase64ByteSize(compressed) <= maxBytes) return compressed;
             throw new Error('Gambar terlalu besar untuk disimpan. Pilih file yang lebih kecil atau kurangi resolusi.');
         }
-
-
 
         auth.onAuthStateChanged((user) => {
             currentUser = user;
@@ -1840,7 +1768,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             
             setLoading('btnSaveGamerProfile', true, 'Menyimpan...');
             try {
-                if(file) { m.gamerPhoto = await compressImageToLimit(file, 450, 0.45, 70000); }
+                if(file) { m.gamerPhoto = await compressImageToLimit(file, 600, 0.6, 180000); }
                 m.gamerBio = document.getElementById('gpEditBio').value;
                 m.gamerYt = document.getElementById('gpEditYt').value;
                 m.gamerIg = document.getElementById('gpEditIg').value;
@@ -1851,9 +1779,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                     m.playedGames.push(chk.value);
                 });
 
-                const safeMember = normalizeMemberDocForFirestore(m);
-                ensureFirestoreDocSize(safeMember, 'Profil member');
-                await db.collection("members").doc(id).set(safeMember);
+                await db.collection("members").doc(id).set(m);
                 closeModal('modalEditGamerProfile');
                 openGamerProfile(id); // Reload
                 setLoading('btnSaveGamerProfile', false, 'Simpan Profil Gamers');
@@ -1894,9 +1820,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 if(!m.gameplays) m.gameplays = [];
                 m.gameplays.push({ title: title, ytId: ytId });
                 
-                const safeMember = normalizeMemberDocForFirestore(m);
-                ensureFirestoreDocSize(safeMember, 'Profil member');
-                await db.collection("members").doc(mid).set(safeMember);
+                await db.collection("members").doc(mid).set(m);
                 closeModal('modalAddGamerVideo');
                 document.getElementById('gpVidTitle').value = ""; document.getElementById('gpVidId').value = "";
                 openGamerProfile(mid); // Reload profil
@@ -2508,7 +2432,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
             try {
                 let photoUrl = null;
                 if(file) {
-                    photoUrl = await compressImageToLimit(file, 450, 0.45, 70000);
+                    photoUrl = await compressImageToLimit(file, 600, 0.6, 180000);
                 }
 
                 m.name = document.getElementById('editName').value; 
@@ -2523,10 +2447,8 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 if(photoUrl) m.photo = photoUrl; 
                 
                 m.repertoire = [...currentTempRepertoire]; 
-                const safeMember = normalizeMemberDocForFirestore(m);
-                ensureFirestoreDocSize(safeMember, 'Profil member');
                 
-                await db.collection("members").doc(id).set(safeMember);
+                await db.collection("members").doc(id).set(m);
                 
                 closeModal('modalEdit'); 
                 openProfile(id); 
@@ -2601,7 +2523,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
 
                 let proofUrl = null;
                 if(proof) {
-                    proofUrl = await compressImageToLimit(proof, 500, 0.45, 70000);
+                    proofUrl = await compressImageToLimit(proof, 600, 0.55, 180000);
                 }
 
                 const uniqueWinId = editId || (Date.now() + Math.random().toString());
@@ -2635,8 +2557,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                     } else { history.unshift(myWinData); }
 
                     // FIX REPERTOIRE: Menghapus auto-push ke repertoire sesuai permintaan
-                    const updatedMemberData = normalizeMemberDocForFirestore({ ...mData, history });
-                    batch.set(mRef, updatedMemberData, { merge: true });
+                    batch.update(mRef, { history: history });
                 });
                 
                 await batch.commit();
@@ -2656,40 +2577,19 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
                 const id = document.getElementById('editId').value; 
                 const m = members.find(x=>x.id==id); 
                 if(!m.gallery) m.gallery=[]; 
-                if (m.gallery.length >= 5) {
-                    alert('Galeri maksimal 5 foto. Hapus foto lama terlebih dahulu.');
+                if (m.gallery.length >= 4) {
+                    alert('Galeri maksimal 4 foto. Hapus foto lama terlebih dahulu.');
                     return;
                 }
-                const u = await compressImageToLimit(f, 450, 0.4, 30000); // Kurangi maxBytes ke 30KB
-                // Simulasi penambahan untuk cek size
-                const tempMember = { ...m, gallery: [...m.gallery, u] };
-                const safeMember = normalizeMemberDocForFirestore(tempMember);
-                ensureFirestoreDocSize(safeMember, 'Profil member');
-                // Sekarang push yang sebenarnya
-                m.gallery.push(u);
-                await db.collection("members").doc(id).set(safeMember);
+                const u = await compressImageToLimit(f, 600, 0.6, 180000);
+                m.gallery.push(u); 
+                await db.collection("members").doc(id).set(m);
                 openProfile(id);
                 inp.value="";
-                alert('Foto galeri berhasil diupload!');
-            } catch (e) { 
-                alert("Gagal upload: " + e.message); 
-                console.error(e);
-            }
+            } catch (e) { alert("Gagal upload: " + e); }
         }
         
-        function deleteGalleryPhoto(mid, idx) { 
-            if(confirm("Hapus foto?")) { 
-                const m = members.find(x=>x.id==mid); 
-                const url = m.gallery[idx];
-                if (url && url.startsWith('https://firebasestorage.googleapis.com/')) {
-                    const path = url.split('/o/')[1].split('?')[0].replace(/%2F/g, '/');
-                    storage.ref().child(decodeURIComponent(path)).delete().catch(() => {}); // Hapus dari storage
-                }
-                m.gallery.splice(idx, 1); 
-                const safeMember = normalizeMemberDocForFirestore(m);
-                db.collection("members").doc(mid).set(safeMember).then(()=>openProfile(mid)); 
-            } 
-        }
+        function deleteGalleryPhoto(mid, idx) { if(confirm("Hapus foto?")) { const m = members.find(x=>x.id==mid); m.gallery.splice(idx, 1); db.collection("members").doc(mid).set(m).then(()=>openProfile(mid)); } }
         
         // FIX: Hapus history secara Global untuk Duo/Squad
         async function deleteHistory(mid, hid) { 
