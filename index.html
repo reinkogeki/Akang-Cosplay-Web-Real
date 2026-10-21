@@ -1386,7 +1386,7 @@ i.fas, i.fa, i.fa-solid, i.far, i.fab,
         // --- TUTORIAL LOGIC ---
         let tutStep = 0;
         function checkTutorial() {
-            if(!localStorage.getItem('akang_tutorial_done')) {
+            if(false) {
                 setTimeout(() => { document.getElementById('tutorialOverlay').style.display = 'flex'; }, 1000);
             }
         }
@@ -2774,128 +2774,75 @@ document.querySelectorAll('.leaderboard-card').forEach(card => {
 </script>
 
 
-<div id="introTutorial" style="
-position:fixed;
-inset:0;
-background:rgba(0,0,0,0.65);
-display:none;
-align-items:center;
-justify-content:center;
-z-index:9999;
-backdrop-filter:blur(6px);
-">
-  <div class="tutorial-card" role="dialog" aria-modal="true" style="max-width:520px;width:90%;max-height:90vh;overflow:auto;background:#1f2430;border-radius:14px;padding:28px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);">
-    
-    <h2 style="margin-bottom:10px;color:#ff4757;"><span class="tutorial-title">Selamat Datang</span></h2>
-
-    <p style="opacity:0.85;line-height:1.6;margin-bottom:16px;">
-      <span class="tutorial-body"></span>
-    </p>
-
-    <div style="text-align:left;margin:18px 0;">
-      <p>💬 <b>Mulai Percakapan</b> — coba chat atau DM Instagram <b>@akangcosplay</b> untuk berkenalan</p>
-      <p>⚔️ <b>Akang Trainee</b> — belajar dan berkembang bersama</p>
-      <p>🎮 <b>Akang Gamers</b> — ruang santai & hiburan komunitas</p>
-      <p>🏆 <b>Leaderboard</b> — lihat perkembangan member aktif</p>
+<div id="tour" role="dialog" aria-modal="true" aria-labelledby="tourTitle" hidden>
+  <div class="tour-card">
+    <div class="tour-icon" id="tourIcon"></div>
+    <h3 id="tourTitle"></h3>
+    <p id="tourText"></p>
+    <div class="tour-dots" id="tourDots"></div>
+    <div class="tour-actions">
+      <button type="button" class="tour-skip" onclick="closeTour()">Lewati</button>
+      <button type="button" class="tour-next" id="tourNext" onclick="nextTour()">Lanjut</button>
     </div>
-
-    <p style="opacity:0.75;margin-bottom:22px;">
-      Kamu bebas menjelajah dulu. Jika merasa cocok, kamu selalu bisa bergabung kapan saja.
-    </p>
-
-    <button onclick="closeIntroTutorial()" style="
-      padding:10px 18px;
-      border:none;
-      border-radius:10px;
-      background:#ff4757;
-      color:white;
-      font-weight:700;
-      cursor:pointer;
-    ">
-      Mulai Jelajahi 🚀
-    </button>
-
   </div>
 </div>
-
+<style>
+#tour{position:fixed;inset:0;z-index:10000;display:flex;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.45);padding:12px;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+#tour[hidden]{display:none}
+.tour-card{width:100%;max-width:380px;background:#1f2430;border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:20px;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.tour-icon{font-size:2rem;line-height:1}
+.tour-card h3{margin:10px 0 6px;font-size:1.1rem;color:#fff}
+.tour-card p{margin:0 0 14px;font-size:.92rem;line-height:1.5;color:#c9ced8}
+.tour-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.tour-dots i{transition:all .3s;width:7px;height:7px;border-radius:50%;background:#555d6e}
+.tour-dots i.on{background:var(--primary);width:18px;border-radius:4px}
+.tour-actions{display:flex;gap:10px}
+.tour-actions button{flex:1;padding:11px;border-radius:10px;border:0;font-weight:700;font-size:.95rem;cursor:pointer}
+.tour-skip{background:transparent;color:#9aa3b2;border:1px solid #444c5c!important}
+.tour-next{background:var(--primary);color:#fff}
+#tour{animation:tourFade .3s ease both}
+.tour-card{animation:tourUp .5s cubic-bezier(.2,.9,.3,1.15) both}
+.tour-card.anim .tour-icon{display:inline-block;animation:tourPop .6s cubic-bezier(.2,1.4,.4,1) both}
+.tour-card.anim .tour-icon.wave{animation:tourPop .6s cubic-bezier(.2,1.4,.4,1) both,tourWave 1.4s .7s ease-in-out 2}
+.tour-card.anim h3{animation:tourIn .4s .12s ease both}
+.tour-card.anim p{animation:tourIn .4s .24s ease both}
+@keyframes tourFade{from{opacity:0}to{opacity:1}}
+@keyframes tourUp{from{opacity:0;transform:translateY(40px) scale(.95)}to{opacity:1;transform:none}}
+@keyframes tourPop{0%{transform:scale(0) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+@keyframes tourIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes tourWave{0%,100%{transform:rotate(0)}25%{transform:rotate(14deg)}50%{transform:rotate(-8deg)}75%{transform:rotate(10deg)}}
+@media (min-width:600px){#tour{align-items:center}}
+</style>
 <script>
-const onboardingMessages = {
-    first: {
-        title: "Selamat Datang di Akang Cosplay 🎭",
-        body: `
-        Akang Cosplay adalah sebuah <b>team cosplay</b> yang berkembang bersama,
-        bukan komunitas terbuka pada umumnya.
-        <br><br>
-        <div style="text-align:left;line-height:1.7;">
-        🎭 <b>Official Team</b> — Rein, Nabilla, dan Ian/Kanekian<br>
-        ⚔️ <b>Akang Trainee</b> — tempat belajar & berkembang sebelum menjadi bagian team<br>
-        🎮 <b>Akang Gamers</b> — ruang santai dan interaksi komunitas<br>
-        🏆 <b>Leaderboard</b> — melihat perjalanan dan progres member
-        </div>
-        <br>
-        Kamu bebas menjelajah terlebih dahulu. Jika tertarik berkembang bersama,
-        perjalanan selalu dimulai dari <b>Akang Trainee</b>.
-        `
-    },
-    second: {
-        title: "Mulai Eksplorasi 🚀",
-        body: `
-        Coba buka <b>Akang Trainee</b> untuk melihat bagaimana perjalanan berkembang dimulai.
-        Setiap member memiliki proses sebelum menjadi bagian dari Official Team.
-        <br><br>
-        Kamu juga bisa melihat aktivitas santai di <b>Akang Gamers</b>.
-        `
-    },
-    returning: {
-        title: "Selamat Datang Kembali ⚔️",
-        body: `
-        Lihat perkembangan terbaru team dan trainee,
-        cek leaderboard, list mabar, atau lanjutkan eksplorasimu.
-        `
-    }
-};
-
-function getVisitType(){
-    let visits = parseInt(localStorage.getItem("akang_visit_count") || "0");
-    visits++;
-    localStorage.setItem("akang_visit_count", visits);
-
-    if(visits === 1) return "first";
-    if(visits === 2) return "second";
-    return "returning";
+const tourSteps=[
+ {i:"🎭",t:"Selamat datang di Akang Cosplay!",d:"Senang kamu mampir. Yuk kenalan dulu lewat 4 langkah singkat, lalu kamu bebas menjelajah."},
+ {i:"🏆",t:"Klasemen & prestasi",d:"Lihat peringkat dan riwayat juara member di menu Official dan Trainee."},
+ {i:"🗓️",t:"Jadwal event",d:"Cek event terdekat di menu Events, lalu simpan ke kalender."},
+ {i:"👤",t:"Login & catat prestasi",d:"Tekan Login di kanan atas. Setelah masuk, pakai tombol (+) di kanan bawah untuk input kemenangan."}
+];
+let tourIdx=0;
+function renderTour(){
+ const s=tourSteps[tourIdx];
+ const c=document.querySelector('.tour-card'); c.classList.remove('anim'); void c.offsetWidth; c.classList.add('anim');
+ document.getElementById('tourIcon').classList.toggle('wave',tourIdx===0);
+ document.getElementById('tourIcon').textContent=s.i;
+ document.getElementById('tourTitle').textContent=s.t;
+ document.getElementById('tourText').textContent=s.d;
+ document.getElementById('tourDots').innerHTML=tourSteps.map((_,k)=>'<i class="'+(k===tourIdx?'on':'')+'"></i>').join('');
+ document.getElementById('tourNext').textContent=tourIdx===tourSteps.length-1?'Mulai':'Lanjut';
 }
-
-function showOnboarding(){
-    const modal = document.getElementById("introTutorial");
-    if(!modal) return;
-
-    const visitType = getVisitType();
-    if(visitType === "returning") return;
-    const msg = onboardingMessages[visitType];
-
-    modal.querySelector(".tutorial-title").innerText = msg.title;
-    modal.querySelector(".tutorial-body").innerHTML = msg.body;
-
-    modal.style.display = "flex";
-
-    setTimeout(()=>{
-        modal.classList.add("show");
-    },600);
-}
-
-function closeIntroTutorial(){
-    const modal = document.getElementById("introTutorial");
-    modal.classList.remove("show");
-
-    setTimeout(()=>{
-        modal.style.display="none";
-    },600);
-}
-
-window.addEventListener("load", ()=>{
-    showOnboarding();
+function nextTour(){ if(tourIdx>=tourSteps.length-1){closeTour();return;} tourIdx++; renderTour(); }
+function closeTour(){ document.getElementById('tour').hidden=true; try{localStorage.setItem('akang_tour_done','1');}catch(e){} }
+function closeIntroTutorial(){ closeTour(); }
+document.getElementById('tour').addEventListener('click',e=>{ if(e.target.id==='tour') closeTour(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !document.getElementById('tour').hidden) closeTour(); });
+window.addEventListener('load',()=>{
+ let done=false; try{done=localStorage.getItem('akang_tour_done')||localStorage.getItem('akang_tutorial_done');}catch(e){}
+ if(done) return;
+ setTimeout(()=>{ renderTour(); document.getElementById('tour').hidden=false; },1500);
 });
 </script>
+
 
 
 <script>
